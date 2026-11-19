@@ -1,0 +1,113 @@
+name: sensibilia
+
+x-application: &application
+  image: ${APP_IMAGE:?Set a released application image with digest}
+  user: "10001:10001"
+  read_only: true
+  tmpfs:
+    - /tmp:size=32m,mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  environment: &environment
+    SENSIBILIA_DATABASE_URL: sqlite:////data/sensibilia.db
+    SENSIBILIA_RELEASE: ${APP_IMAGE}
+    SENSIBILIA_ROOT: /app
+    SENSIBILIA_ASSETS_DIRECTORY: /assets
+  volumes:
+    - laboratory_data:/data
+    - laboratory_assets:/assets
+    - type: bind
+      source: ${BACKUP_DIRECTORY:?Set a separate backup destination}
+      target: /backup
+      bind:
+        create_host_path: false
+  networks: [laboratory]
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  app:
+    <<: *application
+    environment:
+      <<: *environment
+      SENSIBILIA_RESEARCHER_TOKEN_FILE: /run/secrets/researcher_token
+      SENSIBILIA_OPERATOR_TOKEN_FILE: /run/secrets/operator_token
+      FORWARDED_ALLOW_IPS: ${TLS_PROXY_IP:?Set the dedicated TLS proxy address}
+    secrets: [researcher_token, operator_token]
+    volumes:
+      - laboratory_data:/data
+      - laboratory_assets:/assets
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          CMD,
+          python,
+          -c,
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  tls:
+    image: ${TLS_IMAGE:?Set a reviewed Caddy image with digest}
+    restart: unless-stopped
+    ports:
+      - "${LAB_INTERFACE:?Set the laboratory interface IP}:443:443"
+      - "${LAB_INTERFACE}:80:80"
+    environment:
+      LAB_HOSTNAME: ${LAB_HOSTNAME:?Set the certificate DNS name}
+    secrets: [tls_certificate, tls_key]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - tls_data:/data
+      - tls_config:/config
+    networks:
+      laboratory:
+        ipv4_address: ${TLS_PROXY_IP}
+    depends_on:
+      app:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  migrate:
+    <<: *application
+    profiles: [maintenance]
+    command: [python, -m, sensibilia.operations, migrate]
+    restart: "no"
+  backup:
+    <<: *application
+    profiles: [scheduler]
+    command: [python, -m, sensibilia.operations, backup]
+    restart: "no"
+
+volumes:
+  laboratory_data:
+    name: ${DATA_VOLUME:-sensibilia_laboratory_data}
+  laboratory_assets:
+    name: ${ASSETS_VOLUME:-sensibilia_laboratory_assets}
+  tls_data:
+  tls_config:
+
+networks:
+  laboratory:
+    ipam:
+      config:
+        - subnet: ${PROXY_SUBNET:?Set a non-overlapping private proxy subnet}
+
+secrets:
+  researcher_token:
+    file: ${RESEARCHER_TOKEN_FILE:?Set the access-controlled researcher token file}
+  operator_token:
+    file: ${OPERATOR_TOKEN_FILE:?Set the access-controlled operator token file}
+  tls_certificate:
+    file: ${TLS_CERTIFICATE_FILE:?Set the institution certificate chain PEM}
+  tls_key:
+    file: ${TLS_KEY_FILE:?Set the institution private key PEM}

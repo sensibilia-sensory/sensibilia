@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "Question": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "prompt": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "prompt"
+      ],
+      "title": "Question",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "instructions": {
+      "maxLength": 10000,
+      "minLength": 1,
+      "title": "Instructions",
+      "type": "string"
+    },
+    "sample_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Sample Ids",
+      "type": "array"
+    },
+    "kind": {
+      "const": "tcata",
+      "default": "tcata",
+      "title": "Kind",
+      "type": "string"
+    },
+    "attributes": {
+      "items": {
+        "$ref": "#/$defs/Question"
+      },
+      "maxItems": 30,
+      "minItems": 1,
+      "title": "Attributes",
+      "type": "array"
+    },
+    "start_instruction": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Start Instruction",
+      "type": "string"
+    },
+    "duration_ms": {
+      "maximum": 600000,
+      "minimum": 1000,
+      "title": "Duration Ms",
+      "type": "integer"
+    },
+    "required_tolerance_ms": {
+      "maximum": 1000,
+      "minimum": 1,
+      "title": "Required Tolerance Ms",
+      "type": "integer"
+    },
+    "allow_skips": {
+      "default": false,
+      "title": "Allow Skips",
+      "type": "boolean"
+    },
+    "multi_active": {
+      "const": true,
+      "default": true,
+      "title": "Multi Active",
+      "type": "boolean"
+    },
+    "capture": {
+      "const": "transitions",
+      "default": "transitions",
+      "title": "Capture",
+      "type": "string"
+    }
+  },
+  "required": [
+    "instructions",
+    "attributes",
+    "start_instruction",
+    "duration_ms",
+    "required_tolerance_ms"
+  ],
+  "title": "TCATAConfiguration",
+  "type": "object"
+}

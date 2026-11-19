@@ -1,0 +1,71 @@
+{
+  "$defs": {
+    "Question": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "prompt": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "prompt"
+      ],
+      "title": "Question",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "instructions": {
+      "maxLength": 10000,
+      "minLength": 1,
+      "title": "Instructions",
+      "type": "string"
+    },
+    "questions": {
+      "items": {
+        "$ref": "#/$defs/Question"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Questions",
+      "type": "array"
+    },
+    "scale_labels": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 9,
+      "minItems": 9,
+      "title": "Scale Labels",
+      "type": "array"
+    },
+    "allow_skips": {
+      "default": false,
+      "title": "Allow Skips",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "instructions",
+    "questions"
+  ],
+  "title": "HedonicConfiguration",
+  "type": "object"
+}

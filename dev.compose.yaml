@@ -1,0 +1,102 @@
+# The standard install: builds the working tree once, serves it over HTTPS on the
+# laboratory LAN and keeps everything it collects in ./data. Run it with ./docker-up.sh, which
+# prepares the data folders, starts the stack without internet when the image already exists and
+# offers backup and status commands. For laboratories whose institution supplies the certificate,
+# host and backup monitoring there is an optional institution-managed stack (compose.yaml).
+#
+#   ./docker-up.sh                          start (builds only if the image is missing)
+#   ./docker-up.sh update                   rebuild from the working tree (needs internet)
+#   https://localhost:1379/researcher/      no sign-in unless DEV_RESEARCHER_KEY is set
+#   https://localhost:1379/assessor/        tablets
+#   https://localhost:1379/operator         serving staff (or DEV_OPERATOR_KEY)
+#
+# Other devices (tablets) on the LAN: set DEV_LAN_ADDRESS to this computer's LAN IP,
+# e.g. in a .env file or `DEV_LAN_ADDRESS=192.168.1.20 docker compose ... up -d`. Tablets use
+# the Android app built with this stack's root certificate (android/README.md); a browser can
+# install the root from http://<that IP>:1380/certificate.crt instead.
+#
+# Collected data lives in bind mounts, not Docker volumes, so `down -v` removes none of it:
+#   ./data/server      database
+#   ./data/assets      stimulus images
+#   ./data/dev-tls     the certificate authority (generated on the first start, so wiping the
+#                      data or recreating the containers keeps the same root and the Android
+#                      app built from it stays valid)
+#   ./data/backups     verified backups (BACKUP_DIRECTORY; put it on a second disk)
+# Delete ./data/dev-tls to get a new authority (every tablet app then needs a rebuilt APK).
+name: sensibilia-dev
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        NODE_IMAGE: ${DEV_NODE_IMAGE:-node:24-slim}
+        PYTHON_IMAGE: ${DEV_PYTHON_IMAGE:-python:3.13-slim}
+    image: sensibilia-dev:local
+    environment:
+      SENSIBILIA_DATABASE_URL: sqlite:////data/sensibilia.db
+      SENSIBILIA_ASSETS_DIRECTORY: /assets
+      SENSIBILIA_ROOT: /app
+      SENSIBILIA_RELEASE: dev-local
+      SENSIBILIA_RESEARCHER_TOKEN: ${DEV_RESEARCHER_KEY:-}
+      SENSIBILIA_OPERATOR_TOKEN: ${DEV_OPERATOR_KEY:-}
+      FORWARDED_ALLOW_IPS: "*"
+    # The standard install migrates on start (take a backup before updating).
+    command:
+      - sh
+      - -c
+      - >-
+        alembic upgrade head &&
+        exec python -m uvicorn sensibilia.main:app --host 0.0.0.0 --port 8000
+        --workers 1 --proxy-headers --no-access-log
+    volumes:
+      - ./data/server:/data
+      - ./data/assets:/assets
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+
+  # Short-lived job, not a service: ./docker-up.sh backup and ./docker-up.sh status run it.
+  backup:
+    image: sensibilia-dev:local
+    profiles: [scheduler]
+    environment:
+      SENSIBILIA_DATABASE_URL: sqlite:////data/sensibilia.db
+      SENSIBILIA_ASSETS_DIRECTORY: /assets
+      SENSIBILIA_ROOT: /app
+      SENSIBILIA_RELEASE: dev-local
+    command: [python, -m, sensibilia.operations, backup, --destination, /backup]
+    volumes:
+      - ./data/server:/data
+      - ./data/assets:/assets
+      - ${BACKUP_DIRECTORY:-./data/backups}:/backup
+    restart: "no"
+
+  tls:
+    image: ${DEV_CADDY_IMAGE:-caddy:2}
+    environment:
+      DEV_LAN_ADDRESS: ${DEV_LAN_ADDRESS:-127.0.0.1}
+    ports:
+      - "0.0.0.0:1379:1379" # HTTPS: researcher, assessor, operator
+      - "0.0.0.0:1380:1380" # HTTP: only the public test root certificate
+    volumes:
+      - ./deploy/Caddyfile.dev:/etc/caddy/Caddyfile:ro
+      - ./data/dev-tls:/data
+      - dev_tls_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  dev_tls_config:

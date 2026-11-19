@@ -1,0 +1,175 @@
+{
+  "format_version": 1,
+  "title": "Example sample evaluation",
+  "description": "",
+  "form": {
+    "schema_version": 2,
+    "text_version": 1,
+    "languages": [
+      "en"
+    ],
+    "default_language": "en",
+    "nodes": [
+      {
+        "id": "7ea7e804-1d2b-4e79-8650-b549e7c9d2f7",
+        "title": {
+          "en": "Welcome"
+        },
+        "guard": null,
+        "otherwise": {
+          "action": "continue"
+        },
+        "kind": "info",
+        "data": {
+          "body": {
+            "en": "Follow the laboratory instructions. Replace this example wording before use."
+          },
+          "continue_label": {
+            "en": "Continue"
+          },
+          "asset_ids": []
+        }
+      },
+      {
+        "id": "a46d81cd-4e45-4c31-82c4-4d08c60a99c3",
+        "title": {
+          "en": "Frequency"
+        },
+        "guard": null,
+        "otherwise": {
+          "action": "continue"
+        },
+        "kind": "question",
+        "data": {
+          "prompt": {
+            "en": "How often do you use this product?"
+          },
+          "answer_type": "single",
+          "options": [
+            {
+              "id": "rarely",
+              "label": {
+                "en": "Rarely"
+              },
+              "exclusive": false,
+              "score": null
+            },
+            {
+              "id": "often",
+              "label": {
+                "en": "Often"
+              },
+              "exclusive": false,
+              "score": null
+            }
+          ],
+          "required": true,
+          "allow_skip": false,
+          "min": null,
+          "max": null,
+          "max_length": null
+        }
+      },
+      {
+        "id": "18f4477f-c9e3-4d2f-aa93-de294688b2a1",
+        "title": {
+          "en": "Samples"
+        },
+        "guard": null,
+        "otherwise": {
+          "action": "continue"
+        },
+        "kind": "loop_samples",
+        "data": {
+          "children": [
+            {
+              "id": "92a8448b-91cd-4a68-9042-d74d3061c0d6",
+              "title": {
+                "en": "Liking"
+              },
+              "guard": null,
+              "otherwise": {
+                "action": "continue"
+              },
+              "kind": "embedded_method",
+              "data": {
+                "study_test_id": "9fbed406-9a4f-49de-a039-34341c2e564a",
+                "sample_binding": "current"
+              }
+            }
+          ],
+          "sample_ids": [
+            "97828a9c-91a1-4a0e-99e0-2eeb1770e238",
+            "c9db7cda-6d77-4c66-bf20-cf7889bb202c"
+          ]
+        }
+      },
+      {
+        "id": "5a859b84-68a7-4da1-8e38-8e660ddafa75",
+        "title": {
+          "en": "Done"
+        },
+        "guard": null,
+        "otherwise": {
+          "action": "continue"
+        },
+        "kind": "end",
+        "data": {
+          "body": {
+            "en": "Thank you."
+          },
+          "outcome": "completed"
+        }
+      }
+    ],
+    "method_text": {},
+    "restriction_source_id": null,
+    "restriction_tag_map": {}
+  },
+  "tests": [
+    {
+      "id": "9fbed406-9a4f-49de-a039-34341c2e564a",
+      "name": "Overall liking",
+      "test_type_id": "hedonic-9-v1",
+      "configuration": {
+        "instructions": "Taste the sample and record your overall liking.",
+        "questions": [
+          {
+            "id": "overall_liking",
+            "prompt": "How much do you like this sample overall?",
+            "required": true
+          }
+        ],
+        "scale_labels": [
+          "Dislike extremely",
+          "Dislike very much",
+          "Dislike moderately",
+          "Dislike slightly",
+          "Neither like nor dislike",
+          "Like slightly",
+          "Like moderately",
+          "Like very much",
+          "Like extremely"
+        ],
+        "allow_skips": false
+      }
+    }
+  ],
+  "samples": [
+    {
+      "id": "97828a9c-91a1-4a0e-99e0-2eeb1770e238",
+      "code": "123",
+      "label": "Example product A",
+      "ingredient_tags": []
+    },
+    {
+      "id": "c9db7cda-6d77-4c66-bf20-cf7889bb202c",
+      "code": "456",
+      "label": "Example product B",
+      "ingredient_tags": [
+        "milk"
+      ]
+    }
+  ],
+  "source": null
+}

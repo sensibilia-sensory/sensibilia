@@ -1,0 +1,254 @@
+.method-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+.method-selector select {
+  font-size: 13px;
+  padding: 8px 10px;
+  max-width: 100%;
+}
+.sample-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.sample-table th,
+.sample-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.sample-table th {
+  background: #f5f8f0;
+}
+.sample-add {
+  display: grid;
+  grid-template-columns: 140px minmax(100px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  max-width: 760px;
+}
+.sample-add .field-label {
+  font-size: 13px;
+  margin: 0;
+}
+.sample-add input {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  font-size: 13px;
+  min-height: 36px;
+}
+.sample-panel > .editor-panel {
+  max-width: 1000px;
+}
+.sample-panel .field-help {
+  margin: 10px 0;
+  font-size: 12px;
+  color: #526449;
+}
+.method-preview {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.method-assessor {
+  padding: 20px 24px;
+  color: var(--dark);
+}
+.method-assessor .instruction-body {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.method-product {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.method-product h3 {
+  font-size: 16px;
+}
+.method-attribute {
+  margin: 16px 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.method-attribute legend {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.method-assessor .choice-answer {
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.method-ratings {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+.method-ratings .choice-answer {
+  flex: 1 0 120px;
+}
+.sample-choice-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sample-choice-row .choice-answer {
+  flex: 1 0 160px;
+}
+.sample-choice-row strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 18px;
+}
+.reference-sample,
+.sample-code-strip {
+  background: #f3f7ed;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 12px 14px;
+  font-size: 14px;
+  margin: 12px 0;
+}
+.reference-sample strong {
+  margin-left: 10px;
+  font-size: 18px;
+}
+.descriptor-entry {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin: 12px 0;
+}
+.descriptor-entry .field-label {
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+}
+.descriptor-entry input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+}
+.method-assessor .toolbar-actions {
+  margin: 14px 0;
+}
+.rank-table-wrapper {
+  overflow: auto;
+  margin: 16px 0;
+}
+.rank-table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 14px;
+}
+.rank-table th,
+.rank-table td {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  text-align: left;
+}
+.rank-table select {
+  min-width: 100px;
+  min-height: 44px;
+  padding: 7px;
+  font-size: 14px;
+}
+.map-sample-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+}
+.map-sample-tray .button,
+.map-token {
+  transition: none;
+}
+.map-frame {
+  padding: 24px;
+}
+.napping-map {
+  position: relative;
+  aspect-ratio: 3/2;
+  width: 100%;
+  max-width: 840px;
+  background: #fff;
+  border: 2px solid #75856b;
+  touch-action: none;
+}
+.map-token {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid #5c7453;
+  border-radius: 6px;
+  background: #f2f6ed;
+  color: var(--dark);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 6px;
+  touch-action: none;
+  cursor: grab;
+}
+.map-token.selected {
+  background: var(--green);
+  color: #fff;
+}
+.map-token:active {
+  cursor: grabbing;
+}
+.method-preview > .preview-answer {
+  padding: 12px 20px;
+  margin: 0;
+}
+.app-main .method-card {
+  padding: 20px;
+}
+.app-main .method-card h2 {
+  font-size: 20px;
+}
+.app-main .method-card .method-symbol {
+  width: 38px;
+  height: 38px;
+  margin: 0;
+}
+.app-main .method-card dl {
+  margin: 12px 0;
+}
+@media (max-width: 700px) {
+  .method-selector {
+    display: block;
+  }
+  .method-selector select {
+    display: block;
+    width: 100%;
+    margin-top: 5px;
+  }
+  .sample-add {
+    grid-template-columns: 1fr;
+  }
+  .method-assessor {
+    padding: 14px 12px;
+  }
+  .descriptor-entry {
+    align-items: start;
+    flex-direction: column;
+  }
+  .descriptor-entry .field-label {
+    width: 100%;
+  }
+  .map-frame {
+    padding: 24px;
+  }
+}

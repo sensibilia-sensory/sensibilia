@@ -1,0 +1,22 @@
+{
+  "source_revision": "ba908baaf01428e0ced85c697e2a85e3bf6dc205",
+  "adaptation": "Only sensibilia imports changed to relative imports. No validation logic changed.",
+  "files": {
+    "methods.py": {
+      "source": "src/sensibilia/methods.py",
+      "sha256": "46ffad74f62703a6cf1f9b235e21dddbdf42e8cda34ffc4bd807faf9aba8d84f"
+    },
+    "flows.py": {
+      "source": "src/sensibilia/flows.py",
+      "sha256": "d8c3d65afd6a77a5ae070c8051a822d19431ddeb660dc62651314be512519d0e"
+    },
+    "flow_semantics.py": {
+      "source": "src/sensibilia/flow_semantics.py",
+      "sha256": "07f232d65785f62ce91d6ce8e6986e5cc8b87bcd2be230db5383dfa15abd88ca"
+    },
+    "flow_text.py": {
+      "source": "src/sensibilia/flow_text.py",
+      "sha256": "0c820103e6d1463567600739b413f5252540e8fc00ec2906c127abc5a0a9b0d9"
+    }
+  }
+}

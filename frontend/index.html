@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sensibilia · Researcher workspace</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Sensibilia needs JavaScript. Enable it in the browser settings.</noscript>
+    <script>
+      // A blank page tells staff nothing. If the application has not started after a few
+      // seconds, say what the browser reports so the problem can be fixed from a tablet.
+      (function () {
+        var problems = [];
+        window.addEventListener(
+          'error',
+          function (e) {
+            var target = e.target && e.target.src ? 'could not load ' + e.target.src : '';
+            problems.push(target || String(e.message || 'script error'));
+          },
+          true,
+        );
+        window.addEventListener('unhandledrejection', function (e) {
+          problems.push(String(e.reason));
+        });
+        setTimeout(function () {
+          var root = document.getElementById('root');
+          if (!root || root.childNodes.length) return;
+          var box = document.createElement('div');
+          box.setAttribute('role', 'alert');
+          box.style.cssText = 'font: 16px sans-serif; padding: 16px; max-width: 40em';
+          var lines = [
+            'The application did not start.',
+            'Address: ' + location.href,
+            'Secure connection (https): ' + (window.isSecureContext ? 'yes' : 'no'),
+            'Modules supported: ' + ('noModule' in HTMLScriptElement.prototype ? 'yes' : 'no'),
+            'Browser: ' + navigator.userAgent,
+          ].concat(problems.length ? ['Problems: ' + problems.join('; ')] : []);
+          lines.forEach(function (line, i) {
+            var p = document.createElement(i === 0 ? 'h1' : 'p');
+            p.textContent = line;
+            box.appendChild(p);
+          });
+          root.appendChild(box);
+        }, 5000);
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

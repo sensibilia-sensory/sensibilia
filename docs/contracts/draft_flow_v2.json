@@ -1,0 +1,1812 @@
+{
+  "$defs": {
+    "All": {
+      "additionalProperties": false,
+      "properties": {
+        "all": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Predicate"
+              },
+              {
+                "$ref": "#/$defs/Defined"
+              },
+              {
+                "$ref": "#/$defs/All"
+              },
+              {
+                "$ref": "#/$defs/AnyCondition"
+              }
+            ]
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "All",
+          "type": "array"
+        }
+      },
+      "required": [
+        "all"
+      ],
+      "title": "All",
+      "type": "object"
+    },
+    "AnyCondition": {
+      "additionalProperties": false,
+      "properties": {
+        "any": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Predicate"
+              },
+              {
+                "$ref": "#/$defs/Defined"
+              },
+              {
+                "$ref": "#/$defs/All"
+              },
+              {
+                "$ref": "#/$defs/AnyCondition"
+              }
+            ]
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Any",
+          "type": "array"
+        }
+      },
+      "required": [
+        "any"
+      ],
+      "title": "AnyCondition",
+      "type": "object"
+    },
+    "CodeData": {
+      "additionalProperties": false,
+      "properties": {
+        "prompt": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Prompt",
+          "type": "object"
+        },
+        "source": {
+          "enum": [
+            "sample_code",
+            "returning_codes"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "allow_unknown": {
+          "title": "Allow Unknown",
+          "type": "boolean"
+        },
+        "normalization": {
+          "enum": [
+            "trim_exact",
+            "trim_upper_ascii"
+          ],
+          "title": "Normalization",
+          "type": "string"
+        }
+      },
+      "required": [
+        "prompt",
+        "source",
+        "allow_unknown",
+        "normalization"
+      ],
+      "title": "CodeData",
+      "type": "object"
+    },
+    "CodeNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "code_entry",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/CodeData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "CodeNode",
+      "type": "object"
+    },
+    "ConfirmData": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Body",
+          "type": "object"
+        },
+        "ack_label": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Ack Label",
+          "type": "object"
+        }
+      },
+      "required": [
+        "body",
+        "ack_label"
+      ],
+      "title": "ConfirmData",
+      "type": "object"
+    },
+    "ConfirmNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "confirm",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/ConfirmData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "ConfirmNode",
+      "type": "object"
+    },
+    "ConsentData": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Body",
+          "type": "object"
+        },
+        "accept_label": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Accept Label",
+          "type": "object"
+        },
+        "decline_label": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Decline Label",
+          "type": "object"
+        }
+      },
+      "required": [
+        "body",
+        "accept_label",
+        "decline_label"
+      ],
+      "title": "ConsentData",
+      "type": "object"
+    },
+    "ConsentNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "consent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/ConsentData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "ConsentNode",
+      "type": "object"
+    },
+    "ContinueAction": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "default": "continue",
+          "enum": [
+            "continue",
+            "next_sample",
+            "previous_question"
+          ],
+          "title": "Action",
+          "type": "string"
+        }
+      },
+      "title": "ContinueAction",
+      "type": "object"
+    },
+    "Defined": {
+      "additionalProperties": false,
+      "properties": {
+        "variable": {
+          "maxLength": 250,
+          "minLength": 1,
+          "title": "Variable",
+          "type": "string"
+        },
+        "operator": {
+          "const": "is_defined",
+          "title": "Operator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "variable",
+        "operator"
+      ],
+      "title": "Defined",
+      "type": "object"
+    },
+    "EndData": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Body",
+          "type": "object"
+        },
+        "outcome": {
+          "enum": [
+            "completed",
+            "screened_out"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        }
+      },
+      "required": [
+        "body",
+        "outcome"
+      ],
+      "title": "EndData",
+      "type": "object"
+    },
+    "EndNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "end",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/EndData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "EndNode",
+      "type": "object"
+    },
+    "FlowOption": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Label",
+          "type": "object"
+        },
+        "exclusive": {
+          "default": false,
+          "title": "Exclusive",
+          "type": "boolean"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "FlowOption",
+      "type": "object"
+    },
+    "FlowRow": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "prompt": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Prompt",
+          "type": "object"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "prompt",
+        "required"
+      ],
+      "title": "FlowRow",
+      "type": "object"
+    },
+    "GroupData": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "code_entry": "#/$defs/CodeNode",
+                "confirm": "#/$defs/ConfirmNode",
+                "consent": "#/$defs/ConsentNode",
+                "embedded_method": "#/$defs/MethodNode",
+                "end": "#/$defs/EndNode",
+                "group": "#/$defs/GroupNode",
+                "info": "#/$defs/InfoNode",
+                "loop_samples": "#/$defs/LoopNode",
+                "matrix_question": "#/$defs/MatrixNode",
+                "question": "#/$defs/QuestionNode",
+                "serve_gate": "#/$defs/ServeNode"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InfoNode"
+              },
+              {
+                "$ref": "#/$defs/ConsentNode"
+              },
+              {
+                "$ref": "#/$defs/QuestionNode"
+              },
+              {
+                "$ref": "#/$defs/MatrixNode"
+              },
+              {
+                "$ref": "#/$defs/MethodNode"
+              },
+              {
+                "$ref": "#/$defs/GroupNode"
+              },
+              {
+                "$ref": "#/$defs/LoopNode"
+              },
+              {
+                "$ref": "#/$defs/ConfirmNode"
+              },
+              {
+                "$ref": "#/$defs/CodeNode"
+              },
+              {
+                "$ref": "#/$defs/EndNode"
+              },
+              {
+                "$ref": "#/$defs/ServeNode"
+              }
+            ]
+          },
+          "maxItems": 100,
+          "title": "Children",
+          "type": "array"
+        }
+      },
+      "required": [
+        "children"
+      ],
+      "title": "GroupData",
+      "type": "object"
+    },
+    "GroupNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "group",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/GroupData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "GroupNode",
+      "type": "object"
+    },
+    "InfoData": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Body",
+          "type": "object"
+        },
+        "continue_label": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Continue Label",
+          "type": "object"
+        },
+        "asset_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Asset Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "body",
+        "continue_label"
+      ],
+      "title": "InfoData",
+      "type": "object"
+    },
+    "InfoNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "info",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/InfoData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "InfoNode",
+      "type": "object"
+    },
+    "LoopData": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "code_entry": "#/$defs/CodeNode",
+                "confirm": "#/$defs/ConfirmNode",
+                "consent": "#/$defs/ConsentNode",
+                "embedded_method": "#/$defs/MethodNode",
+                "end": "#/$defs/EndNode",
+                "group": "#/$defs/GroupNode",
+                "info": "#/$defs/InfoNode",
+                "loop_samples": "#/$defs/LoopNode",
+                "matrix_question": "#/$defs/MatrixNode",
+                "question": "#/$defs/QuestionNode",
+                "serve_gate": "#/$defs/ServeNode"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InfoNode"
+              },
+              {
+                "$ref": "#/$defs/ConsentNode"
+              },
+              {
+                "$ref": "#/$defs/QuestionNode"
+              },
+              {
+                "$ref": "#/$defs/MatrixNode"
+              },
+              {
+                "$ref": "#/$defs/MethodNode"
+              },
+              {
+                "$ref": "#/$defs/GroupNode"
+              },
+              {
+                "$ref": "#/$defs/LoopNode"
+              },
+              {
+                "$ref": "#/$defs/ConfirmNode"
+              },
+              {
+                "$ref": "#/$defs/CodeNode"
+              },
+              {
+                "$ref": "#/$defs/EndNode"
+              },
+              {
+                "$ref": "#/$defs/ServeNode"
+              }
+            ]
+          },
+          "maxItems": 100,
+          "title": "Children",
+          "type": "array"
+        },
+        "sample_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Sample Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "children",
+        "sample_ids"
+      ],
+      "title": "LoopData",
+      "type": "object"
+    },
+    "LoopNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "loop_samples",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/LoopData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "LoopNode",
+      "type": "object"
+    },
+    "MatrixData": {
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Instructions",
+          "type": "object"
+        },
+        "rows": {
+          "items": {
+            "$ref": "#/$defs/FlowRow"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Rows",
+          "type": "array"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/FlowOption"
+          },
+          "maxItems": 11,
+          "minItems": 2,
+          "title": "Options",
+          "type": "array"
+        },
+        "allow_skip": {
+          "title": "Allow Skip",
+          "type": "boolean"
+        },
+        "layout": {
+          "default": "vertical",
+          "enum": [
+            "vertical",
+            "horizontal",
+            "horizontal_ends"
+          ],
+          "title": "Layout",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instructions",
+        "rows",
+        "options",
+        "allow_skip"
+      ],
+      "title": "MatrixData",
+      "type": "object"
+    },
+    "MatrixNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "matrix_question",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/MatrixData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "MatrixNode",
+      "type": "object"
+    },
+    "MethodData": {
+      "additionalProperties": false,
+      "properties": {
+        "study_test_id": {
+          "format": "uuid",
+          "title": "Study Test Id",
+          "type": "string"
+        },
+        "sample_binding": {
+          "enum": [
+            "none",
+            "current",
+            "set"
+          ],
+          "title": "Sample Binding",
+          "type": "string"
+        },
+        "scale_layout": {
+          "anyOf": [
+            {
+              "enum": [
+                "vertical",
+                "horizontal",
+                "horizontal_ends"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scale Layout"
+        }
+      },
+      "required": [
+        "study_test_id",
+        "sample_binding"
+      ],
+      "title": "MethodData",
+      "type": "object"
+    },
+    "MethodNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "embedded_method",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/MethodData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "MethodNode",
+      "type": "object"
+    },
+    "Predicate": {
+      "additionalProperties": false,
+      "properties": {
+        "variable": {
+          "maxLength": 250,
+          "minLength": 1,
+          "title": "Variable",
+          "type": "string"
+        },
+        "operator": {
+          "enum": [
+            "eq",
+            "neq",
+            "lt",
+            "lte",
+            "gt",
+            "gte",
+            "in",
+            "contains",
+            "intersects"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "variable",
+        "operator",
+        "value"
+      ],
+      "title": "Predicate",
+      "type": "object"
+    },
+    "QuestionData": {
+      "additionalProperties": false,
+      "properties": {
+        "prompt": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Prompt",
+          "type": "object"
+        },
+        "answer_type": {
+          "enum": [
+            "single",
+            "multiple",
+            "text",
+            "integer"
+          ],
+          "title": "Answer Type",
+          "type": "string"
+        },
+        "options": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FlowOption"
+              },
+              "maxItems": 100,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Options"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "allow_skip": {
+          "title": "Allow Skip",
+          "type": "boolean"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max"
+        },
+        "max_length": {
+          "anyOf": [
+            {
+              "maximum": 30000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Length"
+        },
+        "layout": {
+          "default": "vertical",
+          "enum": [
+            "vertical",
+            "horizontal",
+            "horizontal_ends"
+          ],
+          "title": "Layout",
+          "type": "string"
+        }
+      },
+      "required": [
+        "prompt",
+        "answer_type",
+        "required",
+        "allow_skip"
+      ],
+      "title": "QuestionData",
+      "type": "object"
+    },
+    "QuestionNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "question",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/QuestionData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "QuestionNode",
+      "type": "object"
+    },
+    "ServeData": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Body",
+          "type": "object"
+        },
+        "preparation": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Preparation",
+          "type": "object"
+        },
+        "study_test_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Study Test Id"
+        },
+        "timeout_seconds": {
+          "default": 120,
+          "maximum": 600,
+          "minimum": 30,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        },
+        "require_staff_delivery": {
+          "default": false,
+          "title": "Require Staff Delivery",
+          "type": "boolean"
+        },
+        "sample_binding": {
+          "default": "current",
+          "enum": [
+            "current",
+            "set"
+          ],
+          "title": "Sample Binding",
+          "type": "string"
+        },
+        "sample_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Sample Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "body",
+        "preparation"
+      ],
+      "title": "ServeData",
+      "type": "object"
+    },
+    "ServeNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "title": "Title",
+          "type": "object"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Predicate"
+            },
+            {
+              "$ref": "#/$defs/Defined"
+            },
+            {
+              "$ref": "#/$defs/All"
+            },
+            {
+              "$ref": "#/$defs/AnyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guard"
+        },
+        "otherwise": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContinueAction"
+            },
+            {
+              "$ref": "#/$defs/TargetAction"
+            }
+          ],
+          "title": "Otherwise"
+        },
+        "kind": {
+          "const": "serve_gate",
+          "title": "Kind",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/ServeData"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "data"
+      ],
+      "title": "ServeNode",
+      "type": "object"
+    },
+    "TargetAction": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "skip_to",
+            "end_study"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "target_id": {
+          "format": "uuid",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "target_id"
+      ],
+      "title": "TargetAction",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 2,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "text_version": {
+      "anyOf": [
+        {
+          "const": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text Version"
+    },
+    "languages": {
+      "items": {
+        "pattern": "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$",
+        "type": "string"
+      },
+      "maxItems": 10,
+      "minItems": 1,
+      "title": "Languages",
+      "type": "array"
+    },
+    "default_language": {
+      "pattern": "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$",
+      "title": "Default Language",
+      "type": "string"
+    },
+    "nodes": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "code_entry": "#/$defs/CodeNode",
+            "confirm": "#/$defs/ConfirmNode",
+            "consent": "#/$defs/ConsentNode",
+            "embedded_method": "#/$defs/MethodNode",
+            "end": "#/$defs/EndNode",
+            "group": "#/$defs/GroupNode",
+            "info": "#/$defs/InfoNode",
+            "loop_samples": "#/$defs/LoopNode",
+            "matrix_question": "#/$defs/MatrixNode",
+            "question": "#/$defs/QuestionNode",
+            "serve_gate": "#/$defs/ServeNode"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/InfoNode"
+          },
+          {
+            "$ref": "#/$defs/ConsentNode"
+          },
+          {
+            "$ref": "#/$defs/QuestionNode"
+          },
+          {
+            "$ref": "#/$defs/MatrixNode"
+          },
+          {
+            "$ref": "#/$defs/MethodNode"
+          },
+          {
+            "$ref": "#/$defs/GroupNode"
+          },
+          {
+            "$ref": "#/$defs/LoopNode"
+          },
+          {
+            "$ref": "#/$defs/ConfirmNode"
+          },
+          {
+            "$ref": "#/$defs/CodeNode"
+          },
+          {
+            "$ref": "#/$defs/EndNode"
+          },
+          {
+            "$ref": "#/$defs/ServeNode"
+          }
+        ]
+      },
+      "maxItems": 100,
+      "title": "Nodes",
+      "type": "array"
+    },
+    "method_text": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Za-z0-9]{2,8})*$": {
+              "maxLength": 30000,
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "type": "object"
+      },
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "title": "Method Text",
+      "type": "object"
+    },
+    "restriction_source_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Restriction Source Id"
+    },
+    "restriction_tag_map": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "maxProperties": 100,
+      "title": "Restriction Tag Map",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "languages",
+    "default_language",
+    "nodes"
+  ],
+  "title": "DraftFlowV2",
+  "type": "object"
+}

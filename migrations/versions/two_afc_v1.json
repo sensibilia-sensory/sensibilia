@@ -1,0 +1,63 @@
+{
+  "additionalProperties": false,
+  "description": "Two-alternative forced choice (paired comparison, ISO 5495).",
+  "properties": {
+    "instructions": {
+      "maxLength": 10000,
+      "minLength": 1,
+      "title": "Instructions",
+      "type": "string"
+    },
+    "sample_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Sample Ids",
+      "type": "array"
+    },
+    "kind": {
+      "const": "two_afc",
+      "default": "two_afc",
+      "title": "Kind",
+      "type": "string"
+    },
+    "task": {
+      "default": "directional",
+      "enum": [
+        "directional",
+        "preference"
+      ],
+      "title": "Task",
+      "type": "string"
+    },
+    "question": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Question",
+      "type": "string"
+    },
+    "expected_sample_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Sample Id"
+    }
+  },
+  "required": [
+    "instructions",
+    "sample_ids",
+    "question"
+  ],
+  "title": "TwoAFCConfiguration",
+  "type": "object"
+}

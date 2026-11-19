@@ -1,0 +1,54 @@
+/* Colour snapshot of Sensibilia's tokens.css. Geometry is measured in terminal cells. */
+:root {
+  --c-bg: #151a18;
+  --c-panel: #1e2422;
+  --c-border: #3b4541;
+  --c-text: #e7ece9;
+  --c-muted: #a6b0aa;
+  --c-accent: #6cbf9a;
+  --c-accent-contrast: #0e1a14;
+  --c-row-hover: #27302d;
+  --c-selected: #29443a;
+  --c-danger: #f0907f;
+  --t-row: 1;
+  --t-gap: 1;
+  --t-padding: 1;
+  --t-label: 24;
+  --t-outline: 38;
+  --t-outline-min: 30;
+  --t-outline-title-min: 8;
+  --t-outline-kind-min: 7;
+  --t-outline-reserve: 24;
+  --t-outline-kind-reserve: 12;
+  --t-compact: 100;
+  --t-input: 1;
+  --t-multiline: 3;
+  --t-scale-lines: 11;
+  --t-status: 3;
+  --t-min-width: 80;
+  --t-min-height: 24;
+}
+:root[data-theme="light"] {
+  --c-bg: #f3f4f2;
+  --c-panel: #ffffff;
+  --c-border: #d4d7d2;
+  --c-text: #1d2420;
+  --c-muted: #5d6660;
+  --c-accent: #1f5c46;
+  --c-accent-contrast: #ffffff;
+  --c-row-hover: #eef2ee;
+  --c-selected: #dfeae3;
+  --c-danger: #a63a2e;
+}
+:root[data-theme="contrast"] {
+  --c-bg: #ffffff;
+  --c-panel: #ffffff;
+  --c-border: #000000;
+  --c-text: #000000;
+  --c-muted: #333333;
+  --c-accent: #00402a;
+  --c-accent-contrast: #ffffff;
+  --c-row-hover: #e8e8e8;
+  --c-selected: #c9dfd2;
+  --c-danger: #8a0000;
+}

@@ -1,0 +1,65 @@
+# Standard install, shared by the Docker and Windows portable installs (051).
+# The SENSIBILIA_* variables have Docker defaults; the portable launcher sets them. Paths are
+# quoted because a Windows folder name can contain spaces.
+# Caddy's private CA issues the certificates (tls internal); every
+# device that should trust them installs the public root once (see dev.compose.yaml).
+{
+	admin off
+	local_certs
+	skip_install_trust
+	# No extra redirect server on port 80: Sensibilia uses only 1379 and 1380, and port 80 is
+	# often taken on Windows (IIS and similar), which would stop Caddy from starting.
+	auto_https disable_redirects
+	# Clients that connect by IP address send no server name; present the LAN address.
+	default_sni {$DEV_LAN_ADDRESS}
+	# A browser that opens http://host:1379 gets a redirect to https://host:1379 instead of
+	# "Client sent an HTTP request to an HTTPS server". Must be listed before tls.
+	servers :1379 {
+		listener_wrappers {
+			http_redirect
+			tls
+		}
+	}
+}
+
+# Plain HTTP carries only the public root certificate, so a tablet can fetch it before
+# it trusts the HTTPS site. Compare its SHA-256 fingerprint with the server before installing.
+http://:1380 {
+	handle /certificate.crt {
+		root * "{$SENSIBILIA_CA_ROOT:/data/caddy/pki/authorities/local}"
+		rewrite * /root.crt
+		header Content-Type application/x-x509-ca-cert
+		header Content-Disposition `attachment; filename="sensibilia-dev-ca.crt"`
+		file_server
+	}
+	# The tablet app: the portable install bakes this laboratory's root into it.
+	# The Docker install has no such folder, so this answers 404 there.
+	handle /tablet-app.apk {
+		root * "{$SENSIBILIA_TABLET_APP:/data/tablet-app}"
+		rewrite * /sensibilia-tablet.apk
+		header Content-Type application/vnd.android.package-archive
+		header Content-Disposition `attachment; filename="sensibilia-tablet.apk"`
+		file_server
+	}
+	handle {
+		respond "Not found" 404
+	}
+}
+
+https://localhost:1379, https://{$DEV_LAN_ADDRESS}:1379 {
+	tls internal
+	header Strict-Transport-Security "max-age=0"
+	# The tablet app and the researcher screen read the public root from here to show its fingerprint.
+	handle /certificate.crt {
+		root * "{$SENSIBILIA_CA_ROOT:/data/caddy/pki/authorities/local}"
+		rewrite * /root.crt
+		header Content-Type application/x-x509-ca-cert
+		file_server
+	}
+	handle {
+		reverse_proxy {$SENSIBILIA_UPSTREAM:app:8000} {
+			# Stream operational SSE without response buffering.
+			flush_interval -1
+		}
+	}
+}

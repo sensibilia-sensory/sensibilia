@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sensibilia-flow-cli"
+version = "0.3.0"
+description = "Standalone local and API-based Session flow authoring for Sensibilia"
+license = "AGPL-3.0-or-later"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.10,<3"]
+
+[project.scripts]
+sensibilia-flow = "sensibilia_cli.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["sensibilia_cli*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+"sensibilia_cli.contracts" = ["manifest.json"]
+"sensibilia_cli" = ["tui/package.json", "tui/bun.lock", "tui/tsconfig.json", "tui/README.md", "tui/src/*.ts", "tui/src/*.css"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

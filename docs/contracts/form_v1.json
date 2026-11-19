@@ -1,0 +1,464 @@
+{
+  "$defs": {
+    "ChoiceOption": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "exclusive": {
+          "default": false,
+          "title": "Exclusive",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "ChoiceOption",
+      "type": "object"
+    },
+    "ChoiceStep": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 250,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "route": {
+          "$ref": "#/$defs/Route"
+        },
+        "kind": {
+          "const": "choice",
+          "default": "choice",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "default": "",
+          "maxLength": 30000,
+          "title": "Text",
+          "type": "string"
+        },
+        "prompt": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "multiple": {
+          "default": false,
+          "title": "Multiple",
+          "type": "boolean"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/ChoiceOption"
+          },
+          "maxItems": 100,
+          "minItems": 2,
+          "title": "Options",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "prompt",
+        "options"
+      ],
+      "title": "ChoiceStep",
+      "type": "object"
+    },
+    "Condition": {
+      "additionalProperties": false,
+      "properties": {
+        "source_step_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Source Step Id",
+          "type": "string"
+        },
+        "option_ids": {
+          "items": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Option Ids",
+          "type": "array"
+        },
+        "match": {
+          "default": "any",
+          "enum": [
+            "any",
+            "all"
+          ],
+          "title": "Match",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_step_id",
+        "option_ids"
+      ],
+      "title": "Condition",
+      "type": "object"
+    },
+    "InstructionStep": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 250,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "route": {
+          "$ref": "#/$defs/Route"
+        },
+        "kind": {
+          "const": "instruction",
+          "default": "instruction",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 30000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "acknowledgement_label": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Acknowledgement Label"
+        },
+        "continue_label": {
+          "default": "Continue",
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Continue Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "text"
+      ],
+      "title": "InstructionStep",
+      "type": "object"
+    },
+    "MatrixStep": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 250,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "route": {
+          "$ref": "#/$defs/Route"
+        },
+        "kind": {
+          "const": "matrix",
+          "default": "matrix",
+          "title": "Kind",
+          "type": "string"
+        },
+        "instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "rows": {
+          "items": {
+            "$ref": "#/$defs/Question"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Rows",
+          "type": "array"
+        },
+        "scale": {
+          "items": {
+            "$ref": "#/$defs/Option"
+          },
+          "maxItems": 11,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "allow_skips": {
+          "default": false,
+          "title": "Allow Skips",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "instructions",
+        "rows",
+        "scale"
+      ],
+      "title": "MatrixStep",
+      "type": "object"
+    },
+    "Option": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "Option",
+      "type": "object"
+    },
+    "Question": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "prompt": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "prompt"
+      ],
+      "title": "Question",
+      "type": "object"
+    },
+    "Route": {
+      "additionalProperties": false,
+      "properties": {
+        "condition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Condition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "then": {
+          "default": "next",
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Then",
+          "type": "string"
+        },
+        "otherwise": {
+          "default": "next",
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Otherwise",
+          "type": "string"
+        }
+      },
+      "title": "Route",
+      "type": "object"
+    },
+    "TestStep": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 250,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "route": {
+          "$ref": "#/$defs/Route"
+        },
+        "kind": {
+          "const": "test",
+          "default": "test",
+          "title": "Kind",
+          "type": "string"
+        },
+        "study_test_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Study Test Id",
+          "type": "string"
+        },
+        "layout": {
+          "default": "cards",
+          "enum": [
+            "cards",
+            "matrix"
+          ],
+          "title": "Layout",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "study_test_id"
+      ],
+      "title": "TestStep",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "steps": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "choice": "#/$defs/ChoiceStep",
+            "instruction": "#/$defs/InstructionStep",
+            "matrix": "#/$defs/MatrixStep",
+            "test": "#/$defs/TestStep"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/InstructionStep"
+          },
+          {
+            "$ref": "#/$defs/ChoiceStep"
+          },
+          {
+            "$ref": "#/$defs/MatrixStep"
+          },
+          {
+            "$ref": "#/$defs/TestStep"
+          }
+        ]
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "completion_message": {
+      "default": "Thank you for participating.",
+      "maxLength": 10000,
+      "minLength": 1,
+      "title": "Completion Message",
+      "type": "string"
+    },
+    "screen_out_message": {
+      "default": "Your session has ended. Please contact the researcher.",
+      "maxLength": 10000,
+      "minLength": 1,
+      "title": "Screen Out Message",
+      "type": "string"
+    }
+  },
+  "required": [
+    "steps"
+  ],
+  "title": "StudyForm",
+  "type": "object"
+}

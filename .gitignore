@@ -1,0 +1,39 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.env
+data/
+*.db
+*.db-wal
+*.db-shm
+htmlcov/
+.coverage
+node_modules/
+test-results/
+playwright-report/
+*.tsbuildinfo
+
+# Local deployment configuration and certificate material
+deploy/private/
+
+# Locally downloaded Android platform tools (adb)
+platform-tools/
+
+# Downloaded CI artifacts
+ci-artifacts/
+
+# Routine Playwright captures; signed evidence is regenerated with EVIDENCE_DIR
+frontend/test-evidence/
+
+# Android shell
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.apk

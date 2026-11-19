@@ -1,0 +1,52 @@
+SENSIBILIA - portable edition
+=============================
+
+Nothing to install. Keep this folder where you can find it (for example on the Desktop or on
+D:\) and do not move it while Sensibilia is running.
+
+FIRST TIME
+ 1. If you downloaded the zip: right-click the zip, choose Properties, tick "Unblock" at the
+    bottom, press OK, then unzip it. (Otherwise Windows warns about every file.)
+ 2. Double-click "Start Sensibilia". A black window opens and then your browser opens the
+    researcher screen. If Windows asks whether to allow Sensibilia on the network, choose
+    "Private networks" and Allow.
+ 3. Double-click "Allow tablets (firewall)" once, so that tablets can reach this computer.
+ 4. Before real collection, double-click "Set sign-in keys". The keys are shown once and also
+    saved in settings.env.
+
+EVERY TIME
+ - Start: double-click "Start Sensibilia" and leave the black window open.
+ - Stop: close the black window. Nothing is lost; everything is saved in the data folder.
+ - Keep this computer awake during a session (Settings > System > Power > Sleep: Never).
+
+TABLETS
+ - "Make tablet app" builds the tablet app for THIS computer. Start Sensibilia does it
+   automatically. On a tablet, open the address shown in the black window
+   (http://<this computer>:1380/tablet-app.apk) in Chrome, allow installing, and install.
+ - A tablet works with one computer at a time. To use it with another computer, uninstall the
+   Sensibilia app first. Let the tablet finish synchronising before you uninstall it.
+
+BACKUPS
+ - Double-click "Back up" at least once a day while collecting, and copy the backup folder
+   (data\backups) to a second disk or USB stick. To use another disk directly, edit
+   settings.env (BACKUP_DIRECTORY=E:\SensibiliaBackups).
+ - "Restore a backup" puts a backup back. The data it replaces is kept in
+   data\before-restore-<time>; nothing is deleted.
+
+ANALYSIS (OPTIONAL)
+ - Results > Analyses can compare liking, analyse triangle, duo-trio and 2-AFC tests, JAR
+   (penalty analysis) and CATA, and download Excel or Word reports. It needs the free
+   statistics program R, which is not in this zip.
+ - To add it: close Sensibilia, double-click "Add analysis (R)", then start Sensibilia again.
+   It downloads about 230 MB once and checks every file.
+ - No internet on this computer? On a computer with internet, unzip the same Sensibilia and
+   double-click "Download analysis for another computer". Copy the folder "analysis-download"
+   to this computer and drop it onto "Add analysis (R)".
+
+UPDATING
+ - Unzip the new version into the same place and choose "Replace". Your data folder and
+   settings.env are not in the zip, so they stay as they are. Back up first.
+
+PROBLEMS
+ - "already seems to be running": another black window is open (check the taskbar).
+ - Details of errors are in data\logs.

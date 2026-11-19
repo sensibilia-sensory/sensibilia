@@ -1,0 +1,995 @@
+{
+  "lock_version": 1,
+  "snapshot_date": "2026-11-16",
+  "r": {
+    "version": "4.6.2",
+    "windows": {
+      "url": "https://cran.r-project.org/bin/windows/base/old/4.6.2/R-4.6.2-win.exe",
+      "sha256": "b0b0053baa1963b6d8a28c9642d50107ef9ce2f41c8b9a90e952846c8918b38a",
+      "bytes": 91363600
+    }
+  },
+  "packages": [
+    {
+      "name": "abind",
+      "version": "1.4-8",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/abind_1.4-8.zip",
+        "sha256": "287713c2a6b74c3e4151eb73f4e221bc31d0f52a15df5acce218b4f19924a27e",
+        "bytes": 67678
+      }
+    },
+    {
+      "name": "agricolae",
+      "version": "1.3-7",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/agricolae_1.3-7.zip",
+        "sha256": "40ac5462aeeac27573c0467212c7544bf0ec8077e36d508f1472654ac961f858",
+        "bytes": 1223752
+      }
+    },
+    {
+      "name": "AlgDesign",
+      "version": "1.2.1.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/AlgDesign_1.2.1.2.zip",
+        "sha256": "3f1fc9d5360f9c45803a18a7bffa1c0e3ecacc6d39a02172e327b445bbdcaa35",
+        "bytes": 578664
+      }
+    },
+    {
+      "name": "backports",
+      "version": "1.5.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/backports_1.5.1.zip",
+        "sha256": "acbf690bb59568786a1982b97fd24d7841cbb01943480f9cde6d129f0acaac44",
+        "bytes": 125898
+      }
+    },
+    {
+      "name": "base64enc",
+      "version": "0.1-6",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/base64enc_0.1-6.zip",
+        "sha256": "1854713612eb16c9550b4481e731c0e51b5bed82419874553915b577b7071d15",
+        "bytes": 34835
+      }
+    },
+    {
+      "name": "broom",
+      "version": "1.0.13",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/broom_1.0.13.zip",
+        "sha256": "fe4c066671f68d8392017d21927d6a30ea840f0ce6b3a4934351c5fa72a511a0",
+        "bytes": 1631540
+      }
+    },
+    {
+      "name": "bslib",
+      "version": "0.12.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/bslib_0.12.0.zip",
+        "sha256": "7b32cc2d323be6289700fc8faf32d8a9c80dfddceb20d31563f7c30ba2ee0e33",
+        "bytes": 6494028
+      }
+    },
+    {
+      "name": "cachem",
+      "version": "1.1.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/cachem_1.1.0.zip",
+        "sha256": "6a4bcfdc7f48b758ce1602b9ddd9c6cf74e2e896e1d209ce96d4e91995ccbe86",
+        "bytes": 79818
+      }
+    },
+    {
+      "name": "car",
+      "version": "3.1-5",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/car_3.1-5.zip",
+        "sha256": "28b0a1ed5f2bc992ec5c5d514f3afd4b23e3d6969d94b17f3079f4102890df94",
+        "bytes": 1540712
+      }
+    },
+    {
+      "name": "carData",
+      "version": "3.0-6",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/carData_3.0-6.zip",
+        "sha256": "7e37a02e0079aec9ad71d64c29a23d13ce9be41a77679d08877298ac497fd620",
+        "bytes": 1707478
+      }
+    },
+    {
+      "name": "cli",
+      "version": "3.6.6",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/cli_3.6.6.zip",
+        "sha256": "6d5e4c84f4aab8ecac4adec37f61188d2d2b50eb293edfed2d50d8d2f775aa18",
+        "bytes": 1403918
+      }
+    },
+    {
+      "name": "colorspace",
+      "version": "2.1-4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/colorspace_2.1-4.zip",
+        "sha256": "4ce7e7e9129ec9a7ffdae676ca3c5f7256f91ab4b448541e72d3f9557db472e5",
+        "bytes": 2675220
+      }
+    },
+    {
+      "name": "cowplot",
+      "version": "1.2.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/cowplot_1.2.0.zip",
+        "sha256": "2adfc58393cfec4bf0aef98cf90e4ba4f8a3707ea3b9dca1703b531f1a3a03ae",
+        "bytes": 1387194
+      }
+    },
+    {
+      "name": "crosstalk",
+      "version": "1.2.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/crosstalk_1.2.2.zip",
+        "sha256": "683c42f740a228c77dedc8497ade4c16486350ab0764f065e84c1f96655fae2f",
+        "bytes": 419350
+      }
+    },
+    {
+      "name": "Deriv",
+      "version": "4.3.6",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/Deriv_4.3.6.zip",
+        "sha256": "c61f526ba6d874790852d6a8c3fb08a219bfc8e3649c231747de06f19642cae9",
+        "bytes": 536313
+      }
+    },
+    {
+      "name": "digest",
+      "version": "0.6.39",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/digest_0.6.39.zip",
+        "sha256": "b6cb91c374a7865a952aafe287007b5e69663013bc3475b3eceacf899fe67b00",
+        "bytes": 225720
+      }
+    },
+    {
+      "name": "doBy",
+      "version": "4.7.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/doBy_4.7.2.zip",
+        "sha256": "d99f216631c8408fe2ea843c3568c6d8a48672c4c845677511aa11832a4d9d9b",
+        "bytes": 4844799
+      }
+    },
+    {
+      "name": "dplyr",
+      "version": "1.2.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/dplyr_1.2.1.zip",
+        "sha256": "082f726dcfc102d9217e01b2326e04bd5f9c74e7fe91612122a6fb4f731ca9bf",
+        "bytes": 1617513
+      }
+    },
+    {
+      "name": "DT",
+      "version": "0.34.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/DT_0.34.0.zip",
+        "sha256": "22dc699c71d9c1e3596f8e985171e1806a44a2c37fec473b4bd36f39435b98a1",
+        "bytes": 2009475
+      }
+    },
+    {
+      "name": "ellipse",
+      "version": "0.5.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/ellipse_0.5.0.zip",
+        "sha256": "2e3e5c0098425b3b13b002c951763abe576bebf65f16b2da1cd1231f2ba973eb",
+        "bytes": 222505
+      }
+    },
+    {
+      "name": "emmeans",
+      "version": "2.0.4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/emmeans_2.0.4.zip",
+        "sha256": "2a2c0f0f77e600df89c9e23e78b1fcd1a563514280f193f1f9159eaebef6e80b",
+        "bytes": 2533750
+      }
+    },
+    {
+      "name": "estimability",
+      "version": "2.0.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/estimability_2.0.0.zip",
+        "sha256": "39334f0944d7ab6d3fe70c96673c6b66767dc1f8ceec4b5868ea43503284685f",
+        "bytes": 335217
+      }
+    },
+    {
+      "name": "evaluate",
+      "version": "1.0.5",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/evaluate_1.0.5.zip",
+        "sha256": "22fab1e91ee9b787af37a446c8d9185aacfc8a2dcff9f2ff4fd753194ece1551",
+        "bytes": 106297
+      }
+    },
+    {
+      "name": "FactoMineR",
+      "version": "2.18",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/FactoMineR_2.18.zip",
+        "sha256": "60a4f1f2dbdb0863c1b0d41358c785f747860762361227dfa8b3635ff9741e20",
+        "bytes": 3852654
+      }
+    },
+    {
+      "name": "farver",
+      "version": "2.1.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/farver_2.1.2.zip",
+        "sha256": "71e93a7155fdad5be7039797620c66b9de1d9b2ef1f701393a557546664babe8",
+        "bytes": 1521870
+      }
+    },
+    {
+      "name": "fastmap",
+      "version": "1.2.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/fastmap_1.2.0.zip",
+        "sha256": "b1bfcd3d3475124f52a1a1afad3727c04585673b8edba5fc38c4fc42b73fdd72",
+        "bytes": 141921
+      }
+    },
+    {
+      "name": "flashClust",
+      "version": "1.1-4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/flashClust_1.1-4.zip",
+        "sha256": "aca7f9c9b2d08c5d04cde2e62fe72328046e4ee247cc0f25a04f164ef8836dc3",
+        "bytes": 29115
+      }
+    },
+    {
+      "name": "fontawesome",
+      "version": "0.5.3",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/fontawesome_0.5.3.zip",
+        "sha256": "3eb6a56b134c9d28a72cc6b45a9ef40c92c3c87bbc3653237286e822fe8e8443",
+        "bytes": 1394342
+      }
+    },
+    {
+      "name": "forecast",
+      "version": "9.0.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/forecast_9.0.2.zip",
+        "sha256": "6fb629338dcaa1d48920a3a1812960b18ff92962ef0e9bdc8bf5ffd2884e7ce9",
+        "bytes": 1988946
+      }
+    },
+    {
+      "name": "Formula",
+      "version": "1.2-6",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/Formula_1.2-6.zip",
+        "sha256": "3b6227b26e69f8540f51b29df1e6657cfe42203e2a7b4ce4e669b60afbd11e0b",
+        "bytes": 83597
+      }
+    },
+    {
+      "name": "fracdiff",
+      "version": "1.5-4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/fracdiff_1.5-4.zip",
+        "sha256": "471bb4bba321d0e1dd91bb98ee0932ee388c66de3563c4f79ce3874b57bc3d1a",
+        "bytes": 107347
+      }
+    },
+    {
+      "name": "fs",
+      "version": "2.1.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/fs_2.1.0.zip",
+        "sha256": "0c682f87c056239d24bc0ee278b2a367e22e22f4db5555fcd6f2be6db08faa63",
+        "bytes": 426428
+      }
+    },
+    {
+      "name": "generics",
+      "version": "0.1.4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/generics_0.1.4.zip",
+        "sha256": "080ad8d9f3e056b26ddd0883f9e72cea0eeddece96beae80b50fc7a07bd03752",
+        "bytes": 86494
+      }
+    },
+    {
+      "name": "ggplot2",
+      "version": "4.0.4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/ggplot2_4.0.4.zip",
+        "sha256": "4de537faa6aec55791a2e1b6ca191e676c615efe0ba16e9367df2c02664ffe29",
+        "bytes": 8585268
+      }
+    },
+    {
+      "name": "ggrepel",
+      "version": "0.9.8",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/ggrepel_0.9.8.zip",
+        "sha256": "613ab2a8a57018440afc4e2ac7101ff68ad9c1654a3178348138f75a0ca403cb",
+        "bytes": 688326
+      }
+    },
+    {
+      "name": "glue",
+      "version": "1.8.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/glue_1.8.1.zip",
+        "sha256": "74a0de06a0bf6417094efe774b819ca9508876d4b51914ad620e3af66f7344eb",
+        "bytes": 190917
+      }
+    },
+    {
+      "name": "gtable",
+      "version": "0.3.6",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/gtable_0.3.6.zip",
+        "sha256": "1e5ee8ef70e3a27b4025101dfec1b6138cd2833c15a8f9935b3e51c177268c62",
+        "bytes": 252615
+      }
+    },
+    {
+      "name": "gtools",
+      "version": "3.9.5",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/gtools_3.9.5.zip",
+        "sha256": "d8ee785b3fd03f27813e22e420cea7b748c8a7486c4d2fc1ad44ba09b58ddc0d",
+        "bytes": 369495
+      }
+    },
+    {
+      "name": "highr",
+      "version": "0.12",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/highr_0.12.zip",
+        "sha256": "675082bb6ea3aceadc939a1e18b24ffa7d5c729646b9939db4163f5b0b53ffd1",
+        "bytes": 44737
+      }
+    },
+    {
+      "name": "htmltools",
+      "version": "0.5.9",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/htmltools_0.5.9.zip",
+        "sha256": "7849f8763bc61d7e2cb20f46f29d5d5b8e0cfe9e42993d2e9984a685b5e8dbaa",
+        "bytes": 363795
+      }
+    },
+    {
+      "name": "htmlwidgets",
+      "version": "1.6.4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/htmlwidgets_1.6.4.zip",
+        "sha256": "3c671ad03da0c95946f24933a5d19a83f0ce7710789a950c2fb9ca6f25f24d5b",
+        "bytes": 814171
+      }
+    },
+    {
+      "name": "irlba",
+      "version": "2.4.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/irlba_2.4.1.zip",
+        "sha256": "abcc944d4d1c81f81ea858be0a0a5d8c0a938db0c69cbd5cd854d4e5b6018937",
+        "bytes": 447346
+      }
+    },
+    {
+      "name": "isoband",
+      "version": "0.3.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/isoband_0.3.0.zip",
+        "sha256": "d147f430694a7f3db55f1d9827b68db2f007504c2eb56f183104930715a9e02c",
+        "bytes": 1972195
+      }
+    },
+    {
+      "name": "jquerylib",
+      "version": "0.1.4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/jquerylib_0.1.4.zip",
+        "sha256": "aa8ce3352f05f2c300094d0d51e591f9c81ea10915b1371b1c26a45d5537aa8c",
+        "bytes": 527109
+      }
+    },
+    {
+      "name": "jsonlite",
+      "version": "2.0.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/jsonlite_2.0.0.zip",
+        "sha256": "f951bdef28176d3b8602c60533e4dcf837dc7498d9ca327108c29dca361e539d",
+        "bytes": 1108648
+      }
+    },
+    {
+      "name": "knitr",
+      "version": "1.52",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/knitr_1.52.zip",
+        "sha256": "61d69992bf82b040b81ecb3c2e1b3faa49691280a24061b29f396709a0d689d9",
+        "bytes": 1125114
+      }
+    },
+    {
+      "name": "labeling",
+      "version": "0.4.3",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/labeling_0.4.3.zip",
+        "sha256": "b2163eb204c7316e0eef8f3ee6b17ab29bbe5303ce08e1130e315c6cb4447cb8",
+        "bytes": 64072
+      }
+    },
+    {
+      "name": "later",
+      "version": "1.4.8",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/later_1.4.8.zip",
+        "sha256": "d3dae7d12e4734107a67f9bff1e62e224b6f5b5b6b102be3d30fa9e9937f8b8b",
+        "bytes": 474812
+      }
+    },
+    {
+      "name": "lazyeval",
+      "version": "0.2.3",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/lazyeval_0.2.3.zip",
+        "sha256": "f2e671aabd0ab973d023e148299c99a60102cc66125d8e000bacb15d0bd4a549",
+        "bytes": 202988
+      }
+    },
+    {
+      "name": "leaps",
+      "version": "3.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/leaps_3.2.zip",
+        "sha256": "07adae1645f635b3a0df0c56b4d6b3e939cc2c6179e5bc67826baeb669d0d78d",
+        "bytes": 88322
+      }
+    },
+    {
+      "name": "lifecycle",
+      "version": "1.0.5",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/lifecycle_1.0.5.zip",
+        "sha256": "655116bf33a554a5272dfd21e95c2b3044fc3bf0ce530697bc0f5bd71ecc31e5",
+        "bytes": 150567
+      }
+    },
+    {
+      "name": "lme4",
+      "version": "2.1-0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/lme4_2.1-0.zip",
+        "sha256": "27ee87cacb434d844896a5b883cedcad1f108be07d298aaa0af13ad566f79d09",
+        "bytes": 6075482
+      }
+    },
+    {
+      "name": "lmtest",
+      "version": "0.9-40",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/lmtest_0.9-40.zip",
+        "sha256": "701096182ccf4be6ca7605c30f9751a6f56a529eb0f02bf8b575f39b9aea10f7",
+        "bytes": 411218
+      }
+    },
+    {
+      "name": "magrittr",
+      "version": "2.0.5",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/magrittr_2.0.5.zip",
+        "sha256": "f3acfae0a374c4f3a6ba3e1ffa7972a23db0e3b6fd31b749e504178e66eeceeb",
+        "bytes": 230422
+      }
+    },
+    {
+      "name": "MatrixModels",
+      "version": "0.5-4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/MatrixModels_0.5-4.zip",
+        "sha256": "3e2c7469e2a499cf38bc5d1591cf06d55a02f3de3620acbb5c3f9770216078db",
+        "bytes": 410727
+      }
+    },
+    {
+      "name": "memoise",
+      "version": "2.0.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/memoise_2.0.1.zip",
+        "sha256": "b5366209f5ea0311fdbd298681506af3f0d0fbb5b09105fb1812eff59b225a0f",
+        "bytes": 54193
+      }
+    },
+    {
+      "name": "mime",
+      "version": "0.13",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/mime_0.13.zip",
+        "sha256": "539dba68e847edfac8bc7a818f794073cccab7535ee19e4741056c0d26342c01",
+        "bytes": 52766
+      }
+    },
+    {
+      "name": "minqa",
+      "version": "1.2.8",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/minqa_1.2.8.zip",
+        "sha256": "5917a451c425d50ee5fb298757c4e9cd6a28e5852a10e5bc181fd862de2b29d8",
+        "bytes": 455894
+      }
+    },
+    {
+      "name": "modelr",
+      "version": "0.1.11",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/modelr_0.1.11.zip",
+        "sha256": "c9b4389ce90a400bab843e778e3e9129230bb75d0a3be694a7088417eb8aae96",
+        "bytes": 206917
+      }
+    },
+    {
+      "name": "multcomp",
+      "version": "1.4-32",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/multcomp_1.4-32.zip",
+        "sha256": "32ad2c160f9be4c875eb88e0d43f782ed94927f482874b9874e80245ce5ed8e5",
+        "bytes": 783672
+      }
+    },
+    {
+      "name": "multcompView",
+      "version": "0.1-12",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/multcompView_0.1-12.zip",
+        "sha256": "102c05b5c447f5c37f58023a6e9012af0f718a3938584097d8edb32b665b6a2a",
+        "bytes": 234629
+      }
+    },
+    {
+      "name": "mvtnorm",
+      "version": "1.4-2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/mvtnorm_1.4-2.zip",
+        "sha256": "b9e0db1baf7b6ab479b1cdcff5d8898c2623666cbcff63acfb7e4a9928d8d4b5",
+        "bytes": 1116039
+      }
+    },
+    {
+      "name": "nloptr",
+      "version": "2.2.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/nloptr_2.2.1.zip",
+        "sha256": "61c87e105df2422bb9eb92600f79ead83772c598fb8f44bc2289eaf62a1b4a63",
+        "bytes": 906630
+      }
+    },
+    {
+      "name": "numDeriv",
+      "version": "2016.8-1.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/numDeriv_2016.8-1.1.zip",
+        "sha256": "b2c51a9c92fd63a10e3551d7e75095e021519b2cd99cca76c0e3eb617ec6cc52",
+        "bytes": 117844
+      }
+    },
+    {
+      "name": "otel",
+      "version": "0.3.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/otel_0.3.0.zip",
+        "sha256": "ba35c40a7821a34b7c581db68cbb1793f57688d668588168763a9b800ba75ea3",
+        "bytes": 306442
+      }
+    },
+    {
+      "name": "pbkrtest",
+      "version": "0.5.5",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/pbkrtest_0.5.5.zip",
+        "sha256": "803daee29c943a531b0be43686b89eceeec1aa903ffe2adf82ff65d49531070d",
+        "bytes": 230191
+      }
+    },
+    {
+      "name": "pillar",
+      "version": "1.11.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/pillar_1.11.1.zip",
+        "sha256": "f498fec06bc591beba4ba774cbffd135c431eb8c54b9643013ebb062d0f81c35",
+        "bytes": 675442
+      }
+    },
+    {
+      "name": "pkgconfig",
+      "version": "2.0.3",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/pkgconfig_2.0.3.zip",
+        "sha256": "caa7d46b83e6638ac274f8d4dac33240082275323789693da21e14860e128553",
+        "bytes": 22970
+      }
+    },
+    {
+      "name": "plyr",
+      "version": "1.8.9",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/plyr_1.8.9.zip",
+        "sha256": "2bff43abd2ab262e57915ef60be86d0263589966755b59a2d65e3436291b79de",
+        "bytes": 1123249
+      }
+    },
+    {
+      "name": "promises",
+      "version": "1.5.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/promises_1.5.0.zip",
+        "sha256": "a7f6f83f4f0cc91f477d73b231954bd60c325954ddca9b85ad7f2741e244e5cc",
+        "bytes": 1704393
+      }
+    },
+    {
+      "name": "purrr",
+      "version": "1.2.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/purrr_1.2.2.zip",
+        "sha256": "1a9d6b9875e1cd76fdc97e0ce9bea0a424089727074fe51317d94f594938f2a5",
+        "bytes": 570591
+      }
+    },
+    {
+      "name": "quantreg",
+      "version": "6.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/quantreg_6.1.zip",
+        "sha256": "8144d2f2b47f263ea1507e58230bd595040991e84602732d7791f90e64342f26",
+        "bytes": 1471764
+      }
+    },
+    {
+      "name": "R6",
+      "version": "2.6.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/R6_2.6.1.zip",
+        "sha256": "e16a8c018a680ac12ca516c1e0085cfbb2db5cd5e1f65c14884a8a6a47fad538",
+        "bytes": 89923
+      }
+    },
+    {
+      "name": "rappdirs",
+      "version": "0.3.4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/rappdirs_0.3.4.zip",
+        "sha256": "bdc3ac24090b47f49c4c4cd6391c41b8f413459295769bafc39f00d8c466d410",
+        "bytes": 53882
+      }
+    },
+    {
+      "name": "rbibutils",
+      "version": "2.4.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/rbibutils_2.4.1.zip",
+        "sha256": "7247b1ac8c42f9773e45f859de31ae821b95d8ea557b5a09ecb2db1f29c26883",
+        "bytes": 1031147
+      }
+    },
+    {
+      "name": "RColorBrewer",
+      "version": "1.1-3",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/RColorBrewer_1.1-3.zip",
+        "sha256": "2d3acbd1aae131662793de199ca5d60441b27ce5ac7b681a1f436f890cf28ed0",
+        "bytes": 54746
+      }
+    },
+    {
+      "name": "Rcpp",
+      "version": "1.1.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/Rcpp_1.1.2.zip",
+        "sha256": "28eef138e6417b2fd92c9bebb81f5e77c758812cf68b7ec84125b1327c71b461",
+        "bytes": 2957088
+      }
+    },
+    {
+      "name": "Rdpack",
+      "version": "2.6.6",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/Rdpack_2.6.6.zip",
+        "sha256": "20d98eaf6710f26ffd238adc90b67db1bd931409f2d9a956a6fe1255bfe68aa0",
+        "bytes": 650345
+      }
+    },
+    {
+      "name": "reformulas",
+      "version": "0.4.4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/reformulas_0.4.4.zip",
+        "sha256": "2a0dc4a9a9c1d6fe82f8e075b271d649895f1618bbc0917799168cbb4571055f",
+        "bytes": 161235
+      }
+    },
+    {
+      "name": "reshape2",
+      "version": "1.4.5",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/reshape2_1.4.5.zip",
+        "sha256": "3b1bd6ce8eb69eac34ed0e0eb58dae171f3aabf80f02ecbb48f785c50c0c61ad",
+        "bytes": 453910
+      }
+    },
+    {
+      "name": "rlang",
+      "version": "1.3.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/rlang_1.3.0.zip",
+        "sha256": "3984228e435466149ee50c27ba77dc21bb0373710f20773dda0861a7ce1c3f9c",
+        "bytes": 1640128
+      }
+    },
+    {
+      "name": "rmarkdown",
+      "version": "2.32",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/rmarkdown_2.32.zip",
+        "sha256": "e116e439ca8c9e02d00ca57fa81a110a1cfaafb061eb22a6cf89661346b56cc8",
+        "bytes": 2686617
+      }
+    },
+    {
+      "name": "S7",
+      "version": "0.2.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/S7_0.2.2.zip",
+        "sha256": "291d5cfae038dc87b5ec84ef10a9222b8789b21f6f6bffba30b4c9839141d520",
+        "bytes": 350399
+      }
+    },
+    {
+      "name": "sandwich",
+      "version": "3.1-3",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/sandwich_3.1-3.zip",
+        "sha256": "19355ed1cb00f2f760730d5335167470aac5997ed7d3177cb282b2b838c9b50d",
+        "bytes": 1541869
+      }
+    },
+    {
+      "name": "sass",
+      "version": "0.4.10",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/sass_0.4.10.zip",
+        "sha256": "331aa8e6994200a2c78aa1ac8c559395e8be44531e3a4ce8910d823dc3b57493",
+        "bytes": 2593963
+      }
+    },
+    {
+      "name": "scales",
+      "version": "1.4.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/scales_1.4.0.zip",
+        "sha256": "a595810bcffce2d40d831d2696ddc6bacdd1afaaeb30ea3f594b506c29e491a8",
+        "bytes": 881420
+      }
+    },
+    {
+      "name": "scatterplot3d",
+      "version": "0.3-45",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/scatterplot3d_0.3-45.zip",
+        "sha256": "95bd7eb6970e743e26dbaf8c9f9a79d027d3988c5388925328e0fa0cac27e026",
+        "bytes": 362165
+      }
+    },
+    {
+      "name": "SensoMineR",
+      "version": "1.28",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/SensoMineR_1.28.zip",
+        "sha256": "eeb47de357b036cc0ccf84c4b5929d1fe2e3b13774d76848c0289b336f0ca454",
+        "bytes": 1010829
+      }
+    },
+    {
+      "name": "sensR",
+      "version": "1.5-4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/sensR_1.5-4.zip",
+        "sha256": "9a23eb213c65f253436ba1972fd0d4b07bb699eb1b50bb16471d6d3b82067344",
+        "bytes": 906708
+      }
+    },
+    {
+      "name": "showtext",
+      "version": "0.9-8",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/showtext_0.9-8.zip",
+        "sha256": "4e4df59a96faea6e1d2745c20a671e2aae27d9e5e0874c47a6ec1c4ca97785c9",
+        "bytes": 320887
+      }
+    },
+    {
+      "name": "showtextdb",
+      "version": "3.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/showtextdb_3.0.zip",
+        "sha256": "228df666738e59b797d40fb9f203248c209e9fea4893bde8e95a7531f7337bbc",
+        "bytes": 2013245
+      }
+    },
+    {
+      "name": "SparseM",
+      "version": "1.84-2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/SparseM_1.84-2.zip",
+        "sha256": "4808bd3f81ced698affe1912679eb6db4f3292167ac228db695ca042f29f5268",
+        "bytes": 891352
+      }
+    },
+    {
+      "name": "stringi",
+      "version": "1.8.9",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/stringi_1.8.9.zip",
+        "sha256": "b63d0230e82756800de67e9371356435cd93710f467376954237b95a1201ea97",
+        "bytes": 14680888
+      }
+    },
+    {
+      "name": "stringr",
+      "version": "1.6.0",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/stringr_1.6.0.zip",
+        "sha256": "b2faba04d97702a60f67f46fb1b8c43398a7ac9b3e7626b43c362bca22b0191e",
+        "bytes": 352992
+      }
+    },
+    {
+      "name": "sysfonts",
+      "version": "0.8.9",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/sysfonts_0.8.9.zip",
+        "sha256": "3ecb699f5e7d1b157ee5fa39389df5b3a47d3f6fa74e238125a74602008b63a0",
+        "bytes": 2551107
+      }
+    },
+    {
+      "name": "TH.data",
+      "version": "1.1-5",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/TH.data_1.1-5.zip",
+        "sha256": "6b9dfd5f2af0be8567ee3c9a6ffe7be8a56af2a238330695bf1fe319d44b55c0",
+        "bytes": 8774011
+      }
+    },
+    {
+      "name": "tibble",
+      "version": "3.3.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/tibble_3.3.1.zip",
+        "sha256": "424ac6b624e705592a4959c06395ddd56a5bca6ddfaf5d1fccc50a9d27d8cc3f",
+        "bytes": 668348
+      }
+    },
+    {
+      "name": "tidyr",
+      "version": "1.3.2",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/tidyr_1.3.2.zip",
+        "sha256": "fc33287befec2c8fcb60c16c9709d8a4536f3e9d78e784cd50598bd957c0f967",
+        "bytes": 1276233
+      }
+    },
+    {
+      "name": "tidyselect",
+      "version": "1.2.1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/tidyselect_1.2.1.zip",
+        "sha256": "3ab5c3155e2eaee04d7066eec92203ee13479735d4f3c302fcd51758bf569d99",
+        "bytes": 229712
+      }
+    },
+    {
+      "name": "timeDate",
+      "version": "4052.112",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/timeDate_4052.112.zip",
+        "sha256": "bb6b0cfa8a1cbd0049857ed8052f386f1eddb6fb3a90dea671eca6c11435479a",
+        "bytes": 1496604
+      }
+    },
+    {
+      "name": "tinytex",
+      "version": "0.61",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/tinytex_0.61.zip",
+        "sha256": "0fe83b4ac4f69e0e3a8a5821ac77396b4fbc71ffb6e2b17468ce8366b8671c74",
+        "bytes": 153097
+      }
+    },
+    {
+      "name": "urca",
+      "version": "1.3-4",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/urca_1.3-4.zip",
+        "sha256": "ed8f628425eb2968fddfac04ad8b56f1dcb3b5f362fe24185f5e03b4028518ba",
+        "bytes": 1077364
+      }
+    },
+    {
+      "name": "utf8",
+      "version": "1.2.6",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/utf8_1.2.6.zip",
+        "sha256": "bb8e797f679161b2dcce0fac934330ec9cf48332fb598838c3b4b39df18c326d",
+        "bytes": 155347
+      }
+    },
+    {
+      "name": "vctrs",
+      "version": "0.7.3",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/vctrs_0.7.3.zip",
+        "sha256": "1b6fb5b85610f9393b2761c1bfdc4af969ac74d567507d197527ab9f7a9d010d",
+        "bytes": 1895508
+      }
+    },
+    {
+      "name": "viridisLite",
+      "version": "0.4.3",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/viridisLite_0.4.3.zip",
+        "sha256": "46c79a0ae748a55549b7503394e373ecbf6ef6733261000cbe30c415b0d1e695",
+        "bytes": 1300955
+      }
+    },
+    {
+      "name": "withr",
+      "version": "3.0.3",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/withr_3.0.3.zip",
+        "sha256": "85e7a7fd4dd9c630000a0d6a803634e7a8d9bc59398f5ee3edcf46dfea5483a0",
+        "bytes": 235070
+      }
+    },
+    {
+      "name": "xfun",
+      "version": "0.62",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/xfun_0.62.zip",
+        "sha256": "8f9b86042e2eb894667b10175ae6ec4ff870b23b0f3845c78df8c51226b2b07b",
+        "bytes": 699045
+      }
+    },
+    {
+      "name": "yaml",
+      "version": "2.3.12",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/yaml_2.3.12.zip",
+        "sha256": "da198a231abc3da29774317362843b44dd3fd467f2c57f1da850554b0db0ec74",
+        "bytes": 122989
+      }
+    },
+    {
+      "name": "zoo",
+      "version": "1.9-1",
+      "windows": {
+        "url": "https://packagemanager.posit.co/cran/2026-11-16/bin/windows/contrib/4.6/zoo_1.9-1.zip",
+        "sha256": "fa658de868bf583515bb630305334a70e14ccc3763025ee30caaf26d9eb1e263",
+        "bytes": 1014041
+      }
+    }
+  ]
+}

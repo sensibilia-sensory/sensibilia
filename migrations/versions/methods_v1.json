@@ -1,0 +1,602 @@
+[
+  {
+    "id": "cata-v1",
+    "key": "cata",
+    "name": "CATA \u2014 Check all that apply",
+    "schema_version": 1,
+    "configuration_schema": {
+      "$defs": {
+        "Question": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Id",
+              "type": "string"
+            },
+            "prompt": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Prompt",
+              "type": "string"
+            },
+            "required": {
+              "default": true,
+              "title": "Required",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "prompt"
+          ],
+          "title": "Question",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "sample_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Sample Ids",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "$ref": "#/$defs/Question"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Questions",
+          "type": "array"
+        },
+        "allow_skips": {
+          "default": false,
+          "title": "Allow Skips",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "cata",
+          "default": "cata",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instructions",
+        "questions"
+      ],
+      "title": "CATAConfiguration",
+      "type": "object"
+    },
+    "method_metadata": {
+      "source_url": "https://doi.org/10.1016/j.foodqual.2019.103794",
+      "description": "Select applicable attributes; unselected is explicit.",
+      "renderer_status": "implemented",
+      "response_validator_status": "implemented",
+      "implementation_scope": "collection and researcher rehearsal; statistical analysis not implemented"
+    }
+  },
+  {
+    "id": "rata-v1",
+    "key": "rata",
+    "name": "RATA \u2014 Rate all that apply",
+    "schema_version": 1,
+    "configuration_schema": {
+      "$defs": {
+        "Question": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Id",
+              "type": "string"
+            },
+            "prompt": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Prompt",
+              "type": "string"
+            },
+            "required": {
+              "default": true,
+              "title": "Required",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "prompt"
+          ],
+          "title": "Question",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "sample_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Sample Ids",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "$ref": "#/$defs/Question"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Questions",
+          "type": "array"
+        },
+        "allow_skips": {
+          "default": false,
+          "title": "Allow Skips",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "rata",
+          "default": "rata",
+          "title": "Kind",
+          "type": "string"
+        },
+        "rating_target": {
+          "default": "intensity",
+          "enum": [
+            "intensity",
+            "applicability"
+          ],
+          "title": "Rating Target",
+          "type": "string"
+        },
+        "scale_labels": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 11,
+          "minItems": 2,
+          "title": "Scale Labels",
+          "type": "array"
+        },
+        "rating_min": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Rating Min",
+          "type": "integer"
+        },
+        "require_ratings": {
+          "default": true,
+          "title": "Require Ratings",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "instructions",
+        "questions",
+        "scale_labels"
+      ],
+      "title": "RATAConfiguration",
+      "type": "object"
+    },
+    "method_metadata": {
+      "source_url": "https://doi.org/10.1016/j.foodqual.2014.03.006",
+      "description": "Select attributes and rate intensity or applicability.",
+      "renderer_status": "implemented",
+      "response_validator_status": "implemented",
+      "implementation_scope": "collection and researcher rehearsal; statistical analysis not implemented"
+    }
+  },
+  {
+    "id": "jar-v1",
+    "key": "jar",
+    "name": "JAR \u2014 Just about right",
+    "schema_version": 1,
+    "configuration_schema": {
+      "$defs": {
+        "Question": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Id",
+              "type": "string"
+            },
+            "prompt": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Prompt",
+              "type": "string"
+            },
+            "required": {
+              "default": true,
+              "title": "Required",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "prompt"
+          ],
+          "title": "Question",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "sample_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Sample Ids",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "$ref": "#/$defs/Question"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Questions",
+          "type": "array"
+        },
+        "allow_skips": {
+          "default": false,
+          "title": "Allow Skips",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "jar",
+          "default": "jar",
+          "title": "Kind",
+          "type": "string"
+        },
+        "scale_labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Scale Labels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "instructions",
+        "questions"
+      ],
+      "title": "JARConfiguration",
+      "type": "object"
+    },
+    "method_metadata": {
+      "source_url": "https://www.sensorysociety.org/knowledge/sspwiki/Pages/Just%20About%20Right%20Scales.aspx",
+      "description": "Assess an attribute against its ideal level on 3, 5 or 7 categories.",
+      "renderer_status": "implemented",
+      "response_validator_status": "implemented",
+      "implementation_scope": "collection and researcher rehearsal; statistical analysis not implemented"
+    }
+  },
+  {
+    "id": "triangle-v1",
+    "key": "triangle",
+    "name": "Triangle test",
+    "schema_version": 1,
+    "configuration_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "sample_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Sample Ids",
+          "type": "array"
+        },
+        "kind": {
+          "const": "triangle",
+          "default": "triangle",
+          "title": "Kind",
+          "type": "string"
+        },
+        "purpose": {
+          "default": "difference",
+          "enum": [
+            "difference",
+            "similarity"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instructions",
+        "sample_ids"
+      ],
+      "title": "TriangleConfiguration",
+      "type": "object"
+    },
+    "method_metadata": {
+      "source_url": "https://www.iso.org/standard/76666.html",
+      "description": "Choose the different sample from a blinded triad; balanced serving sequences.",
+      "renderer_status": "implemented",
+      "response_validator_status": "implemented",
+      "implementation_scope": "collection and researcher rehearsal; statistical analysis not implemented"
+    }
+  },
+  {
+    "id": "duo-trio-v1",
+    "key": "duo_trio",
+    "name": "Duo-trio test",
+    "schema_version": 1,
+    "configuration_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "sample_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Sample Ids",
+          "type": "array"
+        },
+        "kind": {
+          "const": "duo_trio",
+          "default": "duo_trio",
+          "title": "Kind",
+          "type": "string"
+        },
+        "purpose": {
+          "default": "difference",
+          "enum": [
+            "difference",
+            "similarity"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        },
+        "reference_mode": {
+          "default": "balanced",
+          "enum": [
+            "balanced",
+            "constant"
+          ],
+          "title": "Reference Mode",
+          "type": "string"
+        },
+        "reference_sample_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reference Sample Id"
+        }
+      },
+      "required": [
+        "instructions",
+        "sample_ids"
+      ],
+      "title": "DuoTrioConfiguration",
+      "type": "object"
+    },
+    "method_metadata": {
+      "source_url": "https://www.iso.org/standard/88370.html",
+      "description": "Choose the sample matching the reference; balanced or constant reference.",
+      "renderer_status": "implemented",
+      "response_validator_status": "implemented",
+      "implementation_scope": "collection and researcher rehearsal; statistical analysis not implemented"
+    }
+  },
+  {
+    "id": "flash-profile-v1",
+    "key": "flash_profile",
+    "name": "Flash profiling",
+    "schema_version": 1,
+    "configuration_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "sample_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 30,
+          "minItems": 2,
+          "title": "Sample Ids",
+          "type": "array"
+        },
+        "kind": {
+          "const": "flash_profile",
+          "default": "flash_profile",
+          "title": "Kind",
+          "type": "string"
+        },
+        "descriptor_instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Descriptor Instructions",
+          "type": "string"
+        },
+        "ranking_instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Ranking Instructions",
+          "type": "string"
+        },
+        "min_attributes": {
+          "default": 1,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Min Attributes",
+          "type": "integer"
+        },
+        "max_attributes": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Max Attributes",
+          "type": "integer"
+        },
+        "allow_ties": {
+          "default": true,
+          "title": "Allow Ties",
+          "type": "boolean"
+        },
+        "rank_direction": {
+          "const": "increasing_intensity",
+          "default": "increasing_intensity",
+          "title": "Rank Direction",
+          "type": "string"
+        },
+        "rank_encoding": {
+          "const": "dense",
+          "default": "dense",
+          "title": "Rank Encoding",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instructions",
+        "sample_ids",
+        "descriptor_instructions",
+        "ranking_instructions"
+      ],
+      "title": "FlashConfiguration",
+      "type": "object"
+    },
+    "method_metadata": {
+      "source_url": "https://doi.org/10.1016/S0950-3293(03)00085-5",
+      "description": "Assessors generate their own descriptors and rank the complete product set.",
+      "renderer_status": "implemented",
+      "response_validator_status": "implemented",
+      "implementation_scope": "collection and researcher rehearsal; statistical analysis not implemented"
+    }
+  },
+  {
+    "id": "napping-v1",
+    "key": "napping",
+    "name": "Napping \u2014 Digital projective mapping",
+    "schema_version": 1,
+    "configuration_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "sample_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 50,
+          "minItems": 2,
+          "title": "Sample Ids",
+          "type": "array"
+        },
+        "kind": {
+          "const": "napping",
+          "default": "napping",
+          "title": "Kind",
+          "type": "string"
+        },
+        "canvas_width": {
+          "const": 60,
+          "default": 60,
+          "title": "Canvas Width",
+          "type": "integer"
+        },
+        "canvas_height": {
+          "const": 40,
+          "default": 40,
+          "title": "Canvas Height",
+          "type": "integer"
+        },
+        "coordinate_units": {
+          "const": "cm_equivalent",
+          "default": "cm_equivalent",
+          "title": "Coordinate Units",
+          "type": "string"
+        },
+        "collect_descriptions": {
+          "default": false,
+          "title": "Collect Descriptions",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "instructions",
+        "sample_ids"
+      ],
+      "title": "NappingConfiguration",
+      "type": "object"
+    },
+    "method_metadata": {
+      "source_url": "https://doi.org/10.1016/j.foodqual.2005.01.006",
+      "description": "Digital adaptation: place similar products closer on a blank 3:2 map.",
+      "renderer_status": "implemented",
+      "response_validator_status": "implemented",
+      "implementation_scope": "collection and researcher rehearsal; statistical analysis not implemented"
+    }
+  }
+]

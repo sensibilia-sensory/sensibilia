@@ -1,0 +1,12 @@
+{
+  "instructions": {"en": "Choose one answer for each statement."},
+  "rows": [
+    {"id": "example", "prompt": {"en": "Replace with your reviewed statement."}, "required": true}
+  ],
+  "options": [
+    {"id": "never", "label": {"en": "Never"}, "score": 0},
+    {"id": "sometimes", "label": {"en": "Sometimes"}, "score": 1},
+    {"id": "often", "label": {"en": "Often"}, "score": 2}
+  ],
+  "allow_skip": false
+}

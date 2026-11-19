@@ -1,0 +1,11 @@
+{
+  "instructions": "Taste the sample and record your overall liking.",
+  "questions": [
+    {
+      "id": "overall_liking",
+      "prompt": "How much do you like this sample overall?",
+      "required": true
+    }
+  ],
+  "allow_skips": false
+}

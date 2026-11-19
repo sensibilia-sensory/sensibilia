@@ -1,0 +1,145 @@
+[
+  {
+    "name": "zero",
+    "variables": {
+      "x": 0
+    },
+    "condition": {
+      "variable": "x",
+      "operator": "eq",
+      "value": 0
+    },
+    "expected": true
+  },
+  {
+    "name": "missing equality",
+    "variables": {},
+    "condition": {
+      "variable": "x",
+      "operator": "eq",
+      "value": 0
+    },
+    "expected": false
+  },
+  {
+    "name": "skipped inequality",
+    "variables": {},
+    "condition": {
+      "variable": "x",
+      "operator": "neq",
+      "value": 0
+    },
+    "expected": false
+  },
+  {
+    "name": "empty unselected set",
+    "variables": {
+      "x": []
+    },
+    "condition": {
+      "variable": "x",
+      "operator": "eq",
+      "value": []
+    },
+    "expected": true
+  },
+  {
+    "name": "set ignores order",
+    "variables": {
+      "x": ["b", "a"]
+    },
+    "condition": {
+      "variable": "x",
+      "operator": "eq",
+      "value": ["a", "b"]
+    },
+    "expected": true
+  },
+  {
+    "name": "strict boolean",
+    "variables": {
+      "x": false
+    },
+    "condition": {
+      "variable": "x",
+      "operator": "eq",
+      "value": 0
+    },
+    "expected": false
+  },
+  {
+    "name": "and short circuit",
+    "variables": {},
+    "condition": {
+      "all": [
+        {
+          "variable": "x",
+          "operator": "is_defined"
+        },
+        {
+          "variable": "x",
+          "operator": "gt",
+          "value": 0
+        }
+      ]
+    },
+    "expected": false
+  },
+  {
+    "name": "or",
+    "variables": {
+      "x": true
+    },
+    "condition": {
+      "any": [
+        {
+          "variable": "x",
+          "operator": "eq",
+          "value": true
+        },
+        {
+          "variable": "missing",
+          "operator": "eq",
+          "value": 0
+        }
+      ]
+    },
+    "expected": true
+  },
+  {
+    "name": "in numeric",
+    "variables": {
+      "x": 0
+    },
+    "condition": {
+      "variable": "x",
+      "operator": "in",
+      "value": [0, 1]
+    },
+    "expected": true
+  },
+  {
+    "name": "set member",
+    "variables": {
+      "x": ["nuts"]
+    },
+    "condition": {
+      "variable": "x",
+      "operator": "contains",
+      "value": "nuts"
+    },
+    "expected": true
+  },
+  {
+    "name": "overlap",
+    "variables": {
+      "x": ["nuts"]
+    },
+    "condition": {
+      "variable": "x",
+      "operator": "intersects",
+      "value": ["nuts", "milk"]
+    },
+    "expected": true
+  }
+]

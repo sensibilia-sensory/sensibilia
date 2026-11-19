@@ -1,0 +1,24 @@
+{
+  "name": "sensibilia-flow-tui",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun --no-env-file src/index.ts",
+    "dev": "bun --no-env-file --watch src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "bun --no-env-file test",
+    "capture": "bun --no-env-file scripts/capture.ts",
+    "capture:methods": "bun --no-env-file scripts/capture_methods.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.4",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@opentui/core": "0.8.4"
+  },
+  "engines": {
+    "bun": ">=1.3.14"
+  }
+}
