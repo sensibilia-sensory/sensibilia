@@ -571,6 +571,10 @@ class PairingIssued(BaseModel):
     booth_id: str | None
 
 
+class NetworkAddress(BaseModel):
+    address: str | None
+
+
 class PairingStatus(BaseModel):
     id: str
     status: Literal["waiting", "paired", "expired"]

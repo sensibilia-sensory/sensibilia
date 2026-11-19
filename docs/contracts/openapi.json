@@ -5449,6 +5449,99 @@
         }
       }
     },
+    "/terminals/network-address": {
+      "get": {
+        "tags": [
+          "terminals"
+        ],
+        "summary": "Network Address",
+        "description": "The server's laboratory-network address, for pairing links opened from localhost.",
+        "operationId": "network_address_terminals_network_address_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkAddress"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid researcher/session credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found or foreign version membership",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorRead"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Immutable version, stale revision or conflicting operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (field list or global string)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorRead",
+                  "properties": {
+                    "detail": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "items": {
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      ]
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "SQLite busy; Retry-After header gives retry delay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorRead"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ResearcherToken": []
+          }
+        ]
+      }
+    },
     "/terminals/pairings": {
       "post": {
         "tags": [
@@ -18842,6 +18935,26 @@
           "points"
         ],
         "title": "NappingValue"
+      },
+      "NetworkAddress": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "address"
+        ],
+        "title": "NetworkAddress"
       },
       "NextAssessment": {
         "properties": {

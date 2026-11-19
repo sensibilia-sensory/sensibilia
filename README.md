@@ -136,7 +136,7 @@ You need **Python 3.13+**, **Node.js 22.12+ or 24+** and `git`.
 | `./start.sh --lan` | Listen on all interfaces instead of `127.0.0.1`. |
 | `PYTHON=/path/to/python3.13 ./install.sh` | Use a specific Python. |
 
-[Swagger UI](http://127.0.0.1:8000/docs) documents the API. Tablets need a trusted HTTPS origin for the PWA, so rehearse with tablets on the Docker install above.
+While the server runs, Swagger UI at `http://127.0.0.1:8000/docs` documents the API. Tablets need a trusted HTTPS origin for the PWA, so rehearse with tablets on the Docker install above.
 
 ## Institution-managed deployment (optional)
 

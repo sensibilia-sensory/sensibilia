@@ -112,6 +112,7 @@ from sensibilia.schemas import (
     FormEventRead,
     FormUpdate,
     HealthRead,
+    NetworkAddress,
     NextAssessment,
     ObservationRead,
     PackageRead,
@@ -1651,6 +1652,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(409, "Booth already has a tablet")
 
     redeem_failures: list[float] = []
+
+    @app.get(
+        "/terminals/network-address",
+        response_model=NetworkAddress,
+        dependencies=researcher_dependencies,
+        tags=["terminals"],
+    )
+    def network_address(request: Request):
+        """The server's laboratory-network address, for pairing links opened from localhost."""
+        address = request.app.state.settings.lan_address.strip()
+        loopback = not address or address == "localhost" or address.startswith(("127.", "::1"))
+        return NetworkAddress(address=None if loopback else address)
 
     @app.post(
         "/terminals/pairings",

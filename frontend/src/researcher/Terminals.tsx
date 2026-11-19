@@ -284,6 +284,21 @@ export function Terminals({ client }: { client: Client }) {
       .catch(() => setNotice('Booths could not be read; tablets can still be set up without one.'));
   }, []);
   useEffect(() => {
+    // Opened on the server itself: offer its laboratory-network address, keeping this
+    // page's port, unless staff already typed one.
+    if (!/^(localhost|127\.|\[?::1)/.test(window.location.hostname)) return;
+    client
+      .request<components['schemas']['NetworkAddress']>('/terminals/network-address')
+      .then(({ address: lan }) => {
+        if (!lan) return;
+        const port = window.location.port ? ':' + window.location.port : '';
+        setAddress((typed) =>
+          typed === window.location.origin ? window.location.protocol + '//' + lan + port : typed,
+        );
+      })
+      .catch(() => undefined);
+  }, []);
+  useEffect(() => {
     setLinkBooth(selected?.booth_id ?? '');
   }, [selected?.id, selected?.booth_id]);
   useEffect(() => {

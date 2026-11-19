@@ -429,3 +429,27 @@ def test_first_assessment_for_a_tablet_needs_a_released_study(client, researcher
     assert first.status_code == 200, first.text
     assert first.json()["session_status"] == "in_progress"
     assert first.json()["study_version_id"] == version["id"]
+
+
+@pytest.mark.parametrize(
+    ("configured", "reported"),
+    [("192.168.1.20", "192.168.1.20"), ("127.0.0.1", None), ("", None)],
+)
+def test_network_address_for_pairing_links(database_url, configured, reported):
+    from fastapi.testclient import TestClient
+
+    from sensibilia.api import create_app
+    from sensibilia.config import Settings
+
+    settings = Settings(
+        database_url=database_url,
+        researcher_token="r" * 40,
+        analysis_runner=False,
+        lan_address=configured,
+    )
+    with TestClient(create_app(settings)) as client:
+        assert client.get("/terminals/network-address").status_code == 401
+        result = client.get(
+            "/terminals/network-address", headers={"Authorization": "Bearer " + "r" * 40}
+        )
+        assert result.status_code == 200 and result.json() == {"address": reported}

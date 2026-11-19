@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # Background runner for the optional analysis add-on. Tests turn it off and
     # run jobs directly; the add-on itself is found through SENSIBILIA_ANALYSIS_RUNTIME.
     analysis_runner: bool = True
+    # This computer's address on the laboratory network, detected by the launchers. Pairing
+    # links use it when staff open the researcher pages on the server itself (localhost).
+    lan_address: str = ""
 
     @model_validator(mode="after")
     def separate_roles(self):

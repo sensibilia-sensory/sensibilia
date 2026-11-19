@@ -218,7 +218,9 @@ def run_firewall() -> None:
 # --- Start ------------------------------------------------------------------------------------
 
 
-def child_environment(root: Path, layout: dict[str, Path], settings: dict[str, str]) -> dict:
+def child_environment(
+    root: Path, layout: dict[str, Path], settings: dict[str, str], address: str = ""
+) -> dict:
     env = dict(os.environ)
     env.update(
         SENSIBILIA_DATABASE_URL=database_url(layout),
@@ -227,6 +229,7 @@ def child_environment(root: Path, layout: dict[str, Path], settings: dict[str, s
         SENSIBILIA_RELEASE=RELEASE,
         SENSIBILIA_RESEARCHER_TOKEN=settings.get("DEV_RESEARCHER_KEY", ""),
         SENSIBILIA_OPERATOR_TOKEN=settings.get("DEV_OPERATOR_KEY", ""),
+        SENSIBILIA_LAN_ADDRESS=address,
         # Optional analysis add-on; absent until 'Add analysis (R).bat' runs.
         SENSIBILIA_ANALYSIS_RUNTIME=str(layout["data"] / "analysis-runtime"),
     )
@@ -382,7 +385,7 @@ def run_start(open_browser: bool = True) -> None:
         kill_on_close_job()  # the handle stays open until this process ends
     except OSError as error:
         print(f"Note: closing this window may leave Sensibilia running ({error}).")
-    env = child_environment(root, layout, settings)
+    env = child_environment(root, layout, settings, address)
     migrate(layout, env)
     log = (layout["logs"] / f"portable-{datetime.now():%Y%m%d}.log").open("a", encoding="utf-8")
     server = subprocess.Popen(

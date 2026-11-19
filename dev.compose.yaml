@@ -40,6 +40,7 @@ services:
       SENSIBILIA_RELEASE: dev-local
       SENSIBILIA_RESEARCHER_TOKEN: ${DEV_RESEARCHER_KEY:-}
       SENSIBILIA_OPERATOR_TOKEN: ${DEV_OPERATOR_KEY:-}
+      SENSIBILIA_LAN_ADDRESS: ${DEV_LAN_ADDRESS:-}
       FORWARDED_ALLOW_IPS: "*"
     # The standard install migrates on start (take a backup before updating).
     command:

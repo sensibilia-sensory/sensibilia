@@ -646,6 +646,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/terminals/network-address": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Network Address
+         * @description The server's laboratory-network address, for pairing links opened from localhost.
+         */
+        get: operations["network_address_terminals_network_address_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/terminals/pairings": {
         parameters: {
             query?: never;
@@ -3731,6 +3751,11 @@ export interface components {
             points: {
                 [key: string]: components["schemas"]["MapPoint"];
             };
+        };
+        /** NetworkAddress */
+        NetworkAddress: {
+            /** Address */
+            address: string | null;
         };
         /** NextAssessment */
         NextAssessment: {
@@ -8828,6 +8853,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TerminalRegistered"];
+                };
+            };
+            /** @description Missing or invalid researcher/session credential */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIErrorRead"];
+                };
+            };
+            /** @description Resource not found or foreign version membership */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIErrorRead"];
+                };
+            };
+            /** @description Immutable version, stale revision or conflicting operation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIErrorRead"];
+                };
+            };
+            /** @description Validation error (field list or global string) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIErrorRead"];
+                };
+            };
+            /** @description SQLite busy; Retry-After header gives retry delay */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIErrorRead"];
+                };
+            };
+        };
+    };
+    network_address_terminals_network_address_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkAddress"];
                 };
             };
             /** @description Missing or invalid researcher/session credential */
