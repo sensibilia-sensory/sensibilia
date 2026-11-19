@@ -58,7 +58,7 @@ test(
     await tab('Lists');
     await expect(
       panel.getByRole('region', { name: 'Analyses run' }).locator('tbody tr'),
-    ).toHaveCount(6);
+    ).toHaveCount(7);
     await capture(page, 'analysis-lists', 'desktop', '#analyses-gallery');
 
     await tab('Assessors needed');

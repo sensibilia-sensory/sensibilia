@@ -209,8 +209,9 @@ test(
         .getByTestId('loop-samples')
         .locator('tbody tr')
         .filter({ hasText: 'S1' })
-        .locator('td')
-        .nth(0),
+        // The first cell is the drag handle; the position follows it.
+        .locator('td:not(.ui-col-grip)')
+        .first(),
     ).toHaveText('1');
     await capture(page, 'slice-3-gallery-loop', 'desktop', '#sample-loop');
     await section.getByLabel('Published loop fixture').check();
