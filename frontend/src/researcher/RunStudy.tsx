@@ -12,7 +12,7 @@ import type { components } from '../api-schema';
 import { Button, ConfirmButton, DataTable, Field, SidePanel, Tabs, Toolbar } from '../ui';
 import { navigate } from '../router';
 import { servingStateLabel } from '../shared/lexicon';
-import { Client } from './client';
+import { ApiError, Client } from './client';
 import { useStaffName } from './staff';
 
 export type BoardRoom = components['schemas']['RoomRead'];
@@ -408,6 +408,8 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
     [notice, setNotice] = useState('');
+  /** An earlier assessment still holding the booth a start was refused on, and the tablet to retry. */
+  const [holder, setHolder] = useState<{ sessionId: string; booth: string; tablet: BoardTablet }>();
   const [staff, setStaff] = useStaffName();
   const room = rooms.find((r) => roomKey(r) === roomId) ?? rooms[0];
   const selected = room?.booths.find((b) => b.id === selectedId && b.enabled);
@@ -485,6 +487,7 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
     setBusy(true);
     setError('');
     setNotice('');
+    setHolder(undefined);
     try {
       await work();
       await load();
@@ -581,25 +584,49 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
         revision =
           fresh.tablets.find((t) => t.terminal_id === tablet.terminal_id)?.revision ?? revision;
       }
-      const moved = await client.request<{ assessor_code: string | null; name: string }>(
-        '/terminals/' + tablet.terminal_id + '/next-assessment',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            expected_revision: revision,
-            staff_name: staff,
-            reason: !tablet.session_id
-              ? 'First assessment'
-              : tablet.study_version_id === versionId
-                ? 'Next assessor'
-                : 'Moved to another study',
-            study_version_id: versionId || undefined,
-          }),
-        },
-      );
+      const moved = await client
+        .request<{ assessor_code: string | null; name: string }>(
+          '/terminals/' + tablet.terminal_id + '/next-assessment',
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              expected_revision: revision,
+              staff_name: staff,
+              reason: !tablet.session_id
+                ? 'First assessment'
+                : tablet.study_version_id === versionId
+                  ? 'Next assessor'
+                  : 'Moved to another study',
+              study_version_id: versionId || undefined,
+            }),
+          },
+        )
+        .catch((e: unknown) => {
+          // The booth still holds an earlier assessment in progress: offer to end it here.
+          const held = e instanceof ApiError ? (e.detail as { session_id?: unknown }) : null;
+          if (held && typeof held.session_id === 'string')
+            setHolder({
+              sessionId: held.session_id,
+              booth: String((held as { booth_label?: unknown }).booth_label ?? ''),
+              tablet,
+            });
+          throw e;
+        });
       setNotice(
         moved.name + ': assessor ' + moved.assessor_code + ' assigned. The tablet prepares itself.',
       );
+    });
+  };
+  /** End the assessment holding the booth, then start the tablet that was refused. */
+  const endHolder = () => {
+    if (!holder) return;
+    const { sessionId, tablet } = holder;
+    let ended = false;
+    void act(async () => {
+      await client.endSession(sessionId);
+      ended = true;
+    }).then(() => {
+      if (ended) start(tablet);
     });
   };
   const end = (tablet: BoardTablet) => {
@@ -891,7 +918,19 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
       </p>
       {error && (
         <p role="alert">
-          {error} <Button onClick={() => void load()}>Retry</Button>
+          {error}{' '}
+          {holder ? (
+            <>
+              <ConfirmButton compact confirmLabel="End now" disabled={busy} onConfirm={endHolder}>
+                {'End assessment for booth ' + holder.booth}
+              </ConfirmButton>{' '}
+              <span className="ui-hint">
+                Answers already recorded for that assessment still sync; nothing is deleted.
+              </span>
+            </>
+          ) : (
+            <Button onClick={() => void load()}>Retry</Button>
+          )}
         </p>
       )}
       <Tabs

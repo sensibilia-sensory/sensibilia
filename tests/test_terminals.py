@@ -431,6 +431,92 @@ def test_first_assessment_for_a_tablet_needs_a_released_study(client, researcher
     assert first.json()["study_version_id"] == version["id"]
 
 
+def test_a_booth_left_by_a_removed_or_moved_tablet_takes_the_next_tablet(
+    client, researcher_headers, database_url
+):
+    """Laboratory report: after tablets were set up again, every first assessment failed (500)."""
+    h = researcher_headers
+    study, version, method, flow, base, session, legacy = provision(client, h)
+    booths = [dict(id=str(uuid4()), label=str(n), row=1, column=n, enabled=True) for n in (1, 2)]
+    room = client.post(
+        "/rooms", headers=h, json=dict(name="Lab", rows=1, columns=2, booths=booths)
+    ).json()
+    one, two = (b["id"] for b in room["booths"])
+    engine = create_engine(database_url)
+
+    def redeem(booth):
+        return client.post(
+            "/terminal-pairings/redeem", json={"code": pair(client, h, booth)["code"]}
+        ).json()["terminal_id"]
+
+    def revision(terminal):
+        return next(t for t in client.get("/terminals", headers=h).json() if t["id"] == terminal)[
+            "revision"
+        ]
+
+    def start(terminal):
+        return client.post(
+            f"/terminals/{terminal}/next-assessment",
+            headers=h,
+            json={
+                **STAFF,
+                "expected_revision": revision(terminal),
+                "study_version_id": version["id"],
+            },
+        )
+
+    def finish(response):
+        with engine.begin() as db:
+            db.execute(
+                text("UPDATE sessions SET status='completed' WHERE id=:i"),
+                {"i": response.json()["session_id"]},
+            )
+
+    # A tablet runs an assessment on booth 1 and is then removed.
+    old = redeem(one)
+    first = start(old)
+    assert first.status_code == 200, first.text
+    finish(first)
+    retired = client.post(
+        f"/terminals/{old}/retire", headers=h, json={**STAFF, "expected_revision": revision(old)}
+    )
+    assert retired.status_code == 200, retired.text
+    # The tablet set up in its place starts on the same booth.
+    new = redeem(one)
+    second = start(new)
+    assert second.status_code == 200, second.text
+    # Moved to booth 2 after its assessment, it leaves booth 1 to the next tablet.
+    finish(second)
+    moved = client.put(
+        f"/terminals/{new}/booth",
+        headers=h,
+        json={**STAFF, "expected_revision": revision(new), "booth_id": two},
+    )
+    assert moved.status_code == 200, moved.text
+    third = redeem(one)
+    started = start(third)
+    assert started.status_code == 200, started.text
+    # An assessment still in progress on the booth is refused with a reason, not a crash.
+    with engine.begin() as db:
+        db.execute(text("UPDATE terminals SET booth_id=NULL WHERE id=:i"), {"i": third})
+    fourth = redeem(one)
+    refused = start(fourth)
+    assert refused.status_code == 409
+    detail = refused.json()["detail"]
+    assert "in progress" in detail["message"] and detail["booth_label"] == "1"
+    assert detail["session_id"] == started.json()["session_id"]
+    # Ending it from the error frees the booth for this tablet.
+    ended = client.post(f"/sessions/{detail['session_id']}/end", headers=h)
+    assert ended.status_code == 200, ended.text
+    restarted = start(fourth)
+    assert restarted.status_code == 200, restarted.text
+    active = [
+        a for a in client.get("/booth-assignments", headers=h).json() if a["released_at"] is None
+    ]
+    assert sorted(a["session_id"] for a in active) == [restarted.json()["session_id"]]
+    engine.dispose()
+
+
 @pytest.mark.parametrize(
     ("configured", "reported"),
     [("192.168.1.20", "192.168.1.20"), ("127.0.0.1", None), ("", None)],

@@ -362,6 +362,23 @@ def cancel_assignment(db, assignment, principal, reason):
         )
 
 
+def release_assignment(db, assignment, staff_name, principal, reason):
+    """Free a booth: cancel its open serving requests and record the release; the caller commits."""
+    cancel_assignment(db, assignment, principal, reason)
+    assignment.released_at = timestamp()
+    record(
+        db,
+        identifier(),
+        assignment,
+        "release",
+        {"reason": reason},
+        staff_name,
+        principal,
+        timestamp(),
+    )
+    db.flush()
+
+
 def follow_booth(db, terminal, old_session, new_session, staff_name, reason, principal):
     """Carry a tablet's booth to its next assessment; the caller commits."""
     prior = active_assignment(db, old_session.id) if old_session else None
@@ -381,19 +398,30 @@ def follow_booth(db, terminal, old_session, new_session, staff_name, reason, pri
             409, "The tablet's booth is no longer enabled in the latest room layout"
         )
     if prior:
-        cancel_assignment(db, prior, principal, "next assessment")
-        prior.released_at = timestamp()
-        record(
-            db,
-            identifier(),
-            prior,
-            "release",
-            {"reason": reason},
-            staff_name,
-            principal,
-            timestamp(),
+        release_assignment(db, prior, staff_name, principal, reason)
+    # A booth can still hold an earlier assessment whose tablet was removed or moved away.
+    # A finished one no longer needs the booth; one still in progress must be ended first.
+    held = db.scalar(
+        select(BoothAssignment).where(
+            BoothAssignment.booth_id == booth_id, BoothAssignment.released_at.is_(None)
         )
-        db.flush()
+    )
+    if held:
+        holder = db.get(AssessorSession, held.session_id)
+        if holder and holder.status == "in_progress":
+            label = next(b["label"] for b in room.booths if b["id"] == booth_id)
+            # Structured so the booth board can offer to end that assessment in place.
+            raise HTTPException(
+                409,
+                {
+                    "message": f"Booth {label} still has assessor {holder.assessor_code}'s "
+                    "assessment in progress. End that assessment first.",
+                    "booth_label": label,
+                    "session_id": holder.id,
+                    "assessor_code": holder.assessor_code,
+                },
+            )
+        release_assignment(db, held, staff_name, principal, "booth taken by the next tablet")
     assignment = BoothAssignment(
         room_version_id=room.id,
         booth_id=booth_id,

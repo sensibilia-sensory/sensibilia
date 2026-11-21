@@ -17,6 +17,8 @@ Every pull request must pass CI:
 
 Formatting is owned by Ruff and Prettier; reviews do not comment on it.
 
+A change a laboratory would notice (a feature, a fix, an install or upgrade step, a change to data or exports) adds a line under **Unreleased** in [CHANGELOG.md](CHANGELOG.md), written for lab staff. Tests, refactors and CI-only changes need no entry.
+
 ## Review checklist
 
 Every item is pass/fail. A change is not accepted if it:

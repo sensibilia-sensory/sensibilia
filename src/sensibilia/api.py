@@ -422,7 +422,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Sensibilia API",
-        version="0.1.0",
+        version="0.1.1",
         lifespan=lifespan,
         description="Published sensory studies and idempotent response collection.",
         responses={
@@ -1878,13 +1878,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         release_name(terminal)
         if previous:
             previous.released_at = terminal.retired_at
-            from sensibilia.booths import active_assignment, cancel_assignment
+            from sensibilia.booths import active_assignment, release_assignment
 
             booth = active_assignment(db, previous.session_id)
             if booth:
-                cancel_assignment(
+                # A removed tablet leaves its booth free for the next one.
+                release_assignment(
                     db,
                     booth,
+                    payload.staff_name,
                     "researcher:"
                     + digest(request.app.state.settings.researcher_token.get_secret_value())[:16],
                     "terminal retired",

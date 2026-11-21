@@ -84,7 +84,9 @@ export class Client {
             ? 'Resource not found.'
             : typeof body.detail === 'string'
               ? body.detail
-              : fields.map((f: { message: string }) => f.message).join('; ') || 'Request failed.',
+              : typeof body.detail?.message === 'string'
+                ? body.detail.message
+                : fields.map((f: { message: string }) => f.message).join('; ') || 'Request failed.',
         body.detail,
         response.headers.get('Retry-After'),
         fields,

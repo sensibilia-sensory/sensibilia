@@ -39,6 +39,7 @@ http://:1380 {
 		rewrite * /sensibilia-tablet.apk
 		header Content-Type application/vnd.android.package-archive
 		header Content-Disposition `attachment; filename="sensibilia-tablet.apk"`
+		header Cache-Control "no-store"
 		file_server
 	}
 	handle {

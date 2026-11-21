@@ -312,6 +312,63 @@ test('run study: the list starts a tablet on a released study and shows end-of-d
   await expect(page.getByTestId('terminals-table')).toContainText(paired.terminal_id);
 });
 
+test('run study: a booth held by an assessment in progress can be ended from the error', async ({
+  page,
+  request,
+}) => {
+  const study = await publishSmallStudy(request, 'Held booth study');
+  const [boothId] = await createRoom(request, 'Held booth room ' + Date.now(), 1);
+  const redeem = async () =>
+    (
+      await request.post('/terminal-pairings/redeem', {
+        data: { code: await issuePairing(request, boothId) },
+      })
+    ).json();
+  const revision = async (id: string) =>
+    (await (await request.get('/terminals?limit=200', { headers: researcherHeaders })).json()).find(
+      (t: { id: string }) => t.id === id,
+    ).revision;
+  // An earlier tablet started on the booth and was taken off it mid-assessment.
+  const earlier = await redeem();
+  const started = await request.post('/terminals/' + earlier.terminal_id + '/next-assessment', {
+    headers: researcherHeaders,
+    data: {
+      expected_revision: await revision(earlier.terminal_id),
+      staff_name: 'Seed staff',
+      reason: 'Seed',
+      study_version_id: study.versionId,
+    },
+  });
+  expect(started.status()).toBe(200);
+  const off = await request.put('/terminals/' + earlier.terminal_id + '/booth', {
+    headers: researcherHeaders,
+    data: {
+      expected_revision: await revision(earlier.terminal_id),
+      staff_name: 'Seed staff',
+      reason: 'Seed',
+      booth_id: null,
+    },
+  });
+  expect(off.status()).toBe(200);
+  const paired = await redeem();
+
+  await signIn(page, '/researcher/run?view=list');
+  await page.getByLabel('Your name', { exact: true }).fill('Anna');
+  await page
+    .getByLabel('Study for next assessments', { exact: true })
+    .selectOption(study.versionId);
+  const row = page.getByTestId('run-board').locator('tr', { hasText: paired.name });
+  await row.getByRole('button', { name: 'Start first assessment', exact: true }).click();
+  const alert = page.getByRole('alert');
+  await expect(alert).toContainText('still has assessor');
+  await alert
+    .getByRole('button', { name: 'End assessment for booth Booth 1', exact: true })
+    .click();
+  await alert.getByRole('button', { name: 'End now', exact: true }).click();
+  await expect(row).toContainText('In progress', { timeout: 10000 });
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
 test('a tablet whose study was closed moves to another study without being set up again', async ({
   page,
   request,

@@ -66,7 +66,12 @@ def ensure(app: Path, out: Path, certificate: Path) -> Path:
     out.mkdir(parents=True, exist_ok=True)
     apk, stamp = out / APK_NAME, out / "baked-for.sha256"
     digest = hashlib.sha256(pem).hexdigest()
-    if apk.is_file() and stamp.is_file() and stamp.read_text().strip() == digest:
+    if (
+        apk.is_file()
+        and stamp.is_file()
+        and stamp.read_text().strip() == digest
+        and apk.stat().st_mtime >= template.stat().st_mtime  # a newer template needs a new bake
+    ):
         return apk
     keystore, password_file = out / "signing.p12", out / "signing.pass"
     if not keystore.exists():
