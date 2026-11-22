@@ -164,12 +164,25 @@ public class SetupActivity extends AppCompatActivity {
                 Servers.checkTrusted(parsed.origin);
                 runOnUiThread(() -> finishSetup(parsed));
             } catch (javax.net.ssl.SSLException e) {
-                if (baked != null) {
+                Servers.TlsProblem problem = Servers.classify(e);
+                String detail = "\n\nDetails: " + Servers.rootMessage(e);
+                if (problem == Servers.TlsProblem.CLOCK) {
+                    String now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.ROOT)
+                            .format(new java.util.Date());
+                    runOnUiThread(() -> say("This tablet's date or time is wrong (it says " + now
+                            + "). The server certificate is only valid for a few hours, so the clock "
+                            + "must be right. Open Settings, Date and time, set the correct date, time "
+                            + "and time zone, then try again." + detail, true));
+                } else if (problem == Servers.TlsProblem.ADDRESS) {
+                    runOnUiThread(() -> say("The server certificate is not made for the address "
+                            + parsed.origin + ". Scan the setup code again from the researcher screen "
+                            + "opened on the server's laboratory address." + detail, true));
+                } else if (baked != null) {
                     // Installing a certificate in Settings would not help: this build trusts only
                     // the authority built into it.
                     runOnUiThread(() -> say("The server certificate is not signed by the "
                             + "certificate authority built into this app. Install the app build made "
-                            + "for this server.", true));
+                            + "for this server." + detail, true));
                 } else {
                     loadCertificate(parsed);
                 }

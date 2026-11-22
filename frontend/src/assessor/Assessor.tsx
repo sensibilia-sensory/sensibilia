@@ -95,6 +95,7 @@ export function AssessorView({
     <AssessorShell
       embedded={embedded}
       label={embedded ? undefined : 'Restricted assessor'}
+      screenKey={occurrenceId(state) + ':' + node?.id + ':' + !!state.review}
       centre={
         state.loop && (
           <p className="ui-sample-progress">

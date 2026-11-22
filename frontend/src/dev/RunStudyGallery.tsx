@@ -57,10 +57,14 @@ const tablet = (
   assessor_code: stage === 'waiting' ? null : 'A00' + n,
   stage,
   detail,
+  next_samples: [],
 });
 const tablets: BoardTablet[] = [
   tablet(1, '1', 'serving', 'Needs samples 731 204'),
-  tablet(2, '2', 'in_progress', 'Test in progress, step 4 of 12'),
+  {
+    ...tablet(2, '2', 'in_progress', 'Test in progress, step 4 of 12 · next sample 482'),
+    next_samples: [{ sample_id: 's3', code: '482', label: 'Product C', position: 2 }],
+  },
   tablet(3, '3', 'completed', 'Has completed the test'),
   tablet(4, '4', 'waiting', 'Waiting for assignment'),
   tablet(5, '5', 'offline', 'No contact for 3 min'),

@@ -1,4 +1,18 @@
-import type { CSSProperties, ReactNode } from 'react';
+import {
+  useLayoutEffect,
+  useRef,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
+
+/** Enter ("Go" or "Done" on a tablet keyboard) in a one-line field closes the keyboard. */
+function closeKeyboardOnEnter(event: KeyboardEvent) {
+  const target = event.target as HTMLElement;
+  if (event.key !== 'Enter' || target.tagName !== 'INPUT') return;
+  event.preventDefault();
+  target.blur();
+}
 
 /**
  * Tablet frame for every assessor screen: a few pixels of frame around a flat
@@ -12,6 +26,7 @@ export function AssessorShell({
   progress,
   actions,
   embedded = false,
+  screenKey,
   children,
 }: {
   /** Accessible name of the page landmark. */
@@ -26,14 +41,20 @@ export function AssessorShell({
   actions?: ReactNode;
   /** True inside the researcher gallery or a preview, where the page already has a main landmark. */
   embedded?: boolean;
+  /** Changes when a new screen (step or sample) is shown; the work area then starts at the top. */
+  screenKey?: string;
   children: ReactNode;
 }) {
+  const work = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    work.current?.scrollTo({ top: 0 });
+  }, [screenKey]);
   const Surface = embedded ? 'div' : 'main';
   const share =
     progress && progress.max > 0 ? Math.min(100, (progress.value / progress.max) * 100) : undefined;
   return (
     <div className="ui-preview ui-assessor">
-      <Surface className="ui-assessor-surface" aria-label={label}>
+      <Surface className="ui-assessor-surface" aria-label={label} onKeyDown={closeKeyboardOnEnter}>
         <header className="ui-assessor-bar" data-layout="allowed-grid">
           <span className="ui-assessor-brand">Sensibilia</span>
           <div className="ui-assessor-bar-centre">{centre}</div>
@@ -50,7 +71,7 @@ export function AssessorShell({
             />
           )}
         </header>
-        <div className="ui-assessor-work">
+        <div className="ui-assessor-work" ref={work}>
           <div className="ui-assessor-column ui-stack">{children}</div>
         </div>
         {actions && (

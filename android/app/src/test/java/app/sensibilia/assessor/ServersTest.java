@@ -68,4 +68,18 @@ public class ServersTest {
     public void groupedFingerprintHasColonSeparatedPairs() {
         assertEquals("AA:BB:CC", Servers.grouped("AABBCC"));
     }
+
+    @Test
+    public void classifyTellsClockAddressAndAuthorityApart() {
+        Exception clock = new javax.net.ssl.SSLHandshakeException("Chain validation failed");
+        clock.initCause(new java.security.cert.CertPathValidatorException(
+                "timestamp check failed", new java.security.cert.CertificateNotYetValidException()));
+        assertEquals(Servers.TlsProblem.CLOCK, Servers.classify(clock));
+        assertEquals(Servers.TlsProblem.ADDRESS, Servers.classify(
+                new javax.net.ssl.SSLPeerUnverifiedException("Hostname 10.0.0.5 not verified")));
+        Exception untrusted = new javax.net.ssl.SSLHandshakeException("Chain validation failed");
+        untrusted.initCause(new java.security.cert.CertPathValidatorException(
+                "Trust anchor for certification path not found."));
+        assertEquals(Servers.TlsProblem.AUTHORITY, Servers.classify(untrusted));
+    }
 }

@@ -9,6 +9,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-22
+
+### Added
+
+- Run study: each booth now shows the next sample its assessor will need ("next sample 482"), and
+  the booth panel shows its code and product, so staff can prepare it before the tablet asks. The
+  floor also has a "Next samples" box listing every running assessor with their next sample; drag
+  it anywhere on the floor and it stays there in that browser.
+
+### Fixed
+
+- Tablets: each new question screen now opens at the top. Long lists such as a RATA attribute list
+  used to open part-way down, at the scroll position of the previous screen.
+- Tablet app: when the server certificate is rejected, setup now says why. A wrong date or time on
+  the tablet, or a setup code for the wrong address, used to be reported as "not signed by the
+  certificate authority built into this app" even when the app was the right build.
+- Tablets: pressing Go or Enter on the on-screen keyboard in a text or number answer now closes the
+  keyboard, so Save and continue is reachable without tapping outside it.
+
 ## [0.1.1] - 2026-11-21
 
 ### Fixed

@@ -1844,6 +1844,11 @@ export interface components {
             /** Detail */
             detail: string;
             serving?: components["schemas"]["BoardServing"] | null;
+            /**
+             * Next Samples
+             * @default []
+             */
+            next_samples: components["schemas"]["SlotRead"][];
         };
         /** Booth */
         Booth: {

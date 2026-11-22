@@ -472,6 +472,26 @@ test(
     await expect(gallery.getByRole('button', { name: /^Booth \d,/ })).toHaveCount(6);
     await expect(gallery).toContainText('Needs samples 731 204');
     await expect(gallery).toContainText('Has completed the test');
+    // The Next samples box lists every running assessor and stays wholly on the floor when dragged.
+    const next = gallery.getByRole('group', { name: 'Next samples', exact: true });
+    await expect(next.getByRole('row')).toHaveCount(4);
+    await expect(next.getByRole('row', { name: /A002/ })).toContainText('482 Product C');
+    const floor = (await gallery.getByRole('group', { name: 'Booths' }).boundingBox())!;
+    const inside = async () => {
+      const box = (await next.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(floor.x);
+      expect(box.y).toBeGreaterThanOrEqual(floor.y);
+      expect(box.x + box.width).toBeLessThanOrEqual(floor.x + floor.width + 1);
+      expect(box.y + box.height).toBeLessThanOrEqual(floor.y + floor.height + 1);
+      return box;
+    };
+    const start = await inside();
+    await page.mouse.move(start.x + 10, start.y + 10);
+    await page.mouse.down();
+    await page.mouse.move(floor.x - 200, floor.y + floor.height + 200, { steps: 5 });
+    await page.mouse.up();
+    const moved = await inside();
+    expect(moved.x).toBeLessThan(start.x);
     await axeScan(page, '#run-study');
     await capture(page, 'run-study-stages', 'desktop', '#run-study');
     await gallery.getByRole('tab', { name: 'No booths', exact: true }).click();

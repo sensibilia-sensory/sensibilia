@@ -180,7 +180,20 @@ public class MainActivity extends Activity {
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
             handler.cancel();
-            problem("The server certificate is not trusted on this tablet.");
+            switch (error.getPrimaryError()) {
+                case SslError.SSL_DATE_INVALID:
+                case SslError.SSL_EXPIRED:
+                case SslError.SSL_NOTYETVALID:
+                    problem("This tablet's date or time is wrong, so it cannot check the server "
+                            + "certificate. Set the correct date, time and time zone in Settings.");
+                    break;
+                case SslError.SSL_IDMISMATCH:
+                    problem("The server certificate is not made for this server address. Set up the "
+                            + "tablet again with the setup code from the researcher screen.");
+                    break;
+                default:
+                    problem("The server certificate is not trusted on this tablet.");
+            }
         }
 
         @Override

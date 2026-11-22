@@ -123,6 +123,42 @@ final class Servers {
         return !normalise(baked).equals(normalise(fromSetupCode));
     }
 
+    /** What a tablet person can do about a failed HTTPS check: the clock, the address, or the app build. */
+    enum TlsProblem { CLOCK, ADDRESS, AUTHORITY }
+
+    /**
+     * Reads the cause chain of a failed HTTPS check. A wrong tablet clock and a server certificate
+     * that does not name the address both look like "untrusted" at the top, but need different fixes:
+     * the server certificate is short-lived (hours), so a clock that is off by more than that fails
+     * even with the right authority built in.
+     */
+    static TlsProblem classify(Throwable error) {
+        for (Throwable t = error; t != null; t = t.getCause()) {
+            if (t instanceof java.security.cert.CertificateExpiredException
+                    || t instanceof java.security.cert.CertificateNotYetValidException) {
+                return TlsProblem.CLOCK;
+            }
+            if (t instanceof javax.net.ssl.SSLPeerUnverifiedException) return TlsProblem.ADDRESS;
+            String message = t.getMessage();
+            if (message != null) {
+                String m = message.toLowerCase(Locale.ROOT);
+                if (m.contains("timestamp check failed") || m.contains("not yet valid")
+                        || m.contains("expired")) {
+                    return TlsProblem.CLOCK;
+                }
+                if (m.contains("hostname") && m.contains("not verified")) return TlsProblem.ADDRESS;
+            }
+        }
+        return TlsProblem.AUTHORITY;
+    }
+
+    /** The innermost message of an error, for the technical line under a plain explanation. */
+    static String rootMessage(Throwable error) {
+        Throwable t = error;
+        while (t.getCause() != null && t.getCause() != t) t = t.getCause();
+        return t.getClass().getSimpleName() + (t.getMessage() != null ? ": " + t.getMessage() : "");
+    }
+
     private static String normalise(String hex) {
         return hex.replace(":", "").trim().toUpperCase(Locale.ROOT);
     }

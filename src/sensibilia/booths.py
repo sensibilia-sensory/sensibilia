@@ -195,6 +195,8 @@ class BoardTablet(BaseModel):
     stage: Literal["waiting", "serving", "in_progress", "completed", "ended", "offline"]
     detail: str
     serving: BoardServing | None = None
+    # The samples the assessor's next serving step will ask for, so staff can prepare them.
+    next_samples: list[SlotRead] = []
 
 
 class BoardRead(BaseModel):
@@ -581,6 +583,50 @@ def board_serving(db, session):
     )
 
 
+def run_order(nodes, assignments, occurrence="study"):
+    """Every step with its occurrence in the order an assessor meets them, loops unrolled."""
+    for node in nodes:
+        if node.kind == "loop_samples":
+            for sample in assignments.get(str(node.id), []):
+                yield from run_order(
+                    node.data.children, assignments, f"{node.id}:{sample['sample_id']}"
+                )
+        elif node.kind == "group":
+            yield from run_order(node.data.children, assignments, occurrence)
+        else:
+            yield node, occurrence
+
+
+def next_samples(db, session, flow, last):
+    """The slots of the first serving step at or after the assessor's position not yet requested.
+
+    A guard may still skip it (a restriction, for example); this is what to prepare, not a promise.
+    """
+    order = list(
+        run_order(flow.nodes, {a["loop_id"]: a["samples"] for a in session.loop_assignments})
+    )
+    at = next(
+        (
+            i
+            for i, (n, occurrence) in enumerate(order)
+            if last and str(n.id) == last.step_id and occurrence == last.occurrence_id
+        ),
+        0,
+    )
+    requested = {
+        (s.step_id, s.occurrence_id)
+        for s in db.scalars(select(ServingSignal).where(ServingSignal.session_id == session.id))
+    }
+    for node, occurrence in order[at:]:
+        if node.kind != "serve_gate" or (str(node.id), occurrence) in requested:
+            continue
+        try:
+            return gate_slots(db, session, node, occurrence)
+        except HTTPException:
+            continue
+    return []
+
+
 def board_stage(db, session, process_id):
     """One stage and one plain sentence for what a tablet's assessor is doing now."""
     if session.status == "completed":
@@ -612,9 +658,19 @@ def board_stage(db, session, process_id):
         select(PathEvent).where(PathEvent.session_id == session.id).order_by(PathEvent.seq.desc())
     )
     position = next((i + 1 for i, n in enumerate(steps) if last and str(n.id) == last.step_id), 0)
-    if not position:
-        return "in_progress", "Test starting"
-    return "in_progress", f"Test in progress, step {position} of {len(steps)}"
+    now = f"Test in progress, step {position} of {len(steps)}" if position else "Test starting"
+    upcoming = [s.code for s in next_samples(db, session, flow, last)]
+    if upcoming:
+        now += f" · next sample{'s' if len(upcoming) > 1 else ''} " + " ".join(upcoming)
+    return "in_progress", now
+
+
+def upcoming_slots(db, session):
+    flow = DraftFlowV2.model_validate(db.get(StudyVersion, session.study_version_id).form)
+    last = db.scalar(
+        select(PathEvent).where(PathEvent.session_id == session.id).order_by(PathEvent.seq.desc())
+    )
+    return next_samples(db, session, flow, last)
 
 
 def board(db, process_id):
@@ -641,6 +697,7 @@ def board(db, process_id):
                 stage=stage,
                 detail=detail,
                 serving=board_serving(db, session) if session and stage == "serving" else None,
+                next_samples=upcoming_slots(db, session) if stage == "in_progress" else [],
             )
         )
     return BoardRead(tablets=tablets, server_time=timestamp())

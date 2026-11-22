@@ -93,7 +93,11 @@ def test_stage_is_serving_while_a_sample_is_requested_and_resumes_after(client, 
         with Db(client.app.state.engine) as db:
             return board_stage(db, db.get(AssessorSession, session["id"]), "other-process")
 
-    assert stage()[0] == "in_progress"
+    # Before the tablet asks, staff already see what to prepare next.
+    waiting = stage()
+    assert waiting[0] == "in_progress" and waiting[1].endswith(" · next sample 731")
+    board_next = client.get("/booth-board", headers=researcher_headers).json()["tablets"]
+    assert all(t["next_samples"] == [] for t in board_next)  # no tablet linked in this setup
     url = f"/sessions/{session['id']}/operations"
     assert client.post(url, headers=token, json=command).status_code == 200
     assert stage() == ("serving", "Needs samples 731")
@@ -107,7 +111,8 @@ def test_stage_is_serving_while_a_sample_is_requested_and_resumes_after(client, 
             actor="Operator 1",
         )
         assert client.post("/operator/operations", headers=op, json=step).status_code == 200
-    assert stage()[0] == "in_progress"
+    # Served: nothing left to prepare for this assessor.
+    assert stage()[0] == "in_progress" and "next sample" not in stage()[1]
 
 
 def test_board_serves_with_the_researcher_key_and_keeps_credentials_apart(
@@ -132,7 +137,9 @@ def test_board_serves_with_the_researcher_key_and_keeps_credentials_apart(
         return client.get("/booth-board", headers=h).json()["tablets"][0]
 
     assert tablet()["serving"] is None
+    assert [(s["code"], s["label"]) for s in tablet()["next_samples"]] == [("731", "Private batch")]
     assert client.post(ops, headers=token, json=command).status_code == 200
+    assert tablet()["next_samples"] == []
     serving = tablet()["serving"]
     assert serving["assignment_id"] == assignment["id"]
     assert serving["signal"]["state"] == "ready" and serving["signal"]["revision"] == 1

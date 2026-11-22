@@ -6,6 +6,7 @@ import {
   useState,
   type DragEvent,
   type PointerEvent,
+  type RefObject,
 } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { components } from '../api-schema';
@@ -69,6 +70,116 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 
 function Marker({ stage }: { stage: BoardTablet['stage'] | 'empty' }) {
   return <span className={'ui-board-marker ui-board-marker--' + stage} aria-hidden="true" />;
+}
+
+const NEXT_BOX_KEY = 'sensibilia.run.next-samples-box';
+/** Where this viewer left the Next samples box; a per-browser convenience, safe to lose. */
+function savedNextBox() {
+  try {
+    const at = JSON.parse(localStorage.getItem(NEXT_BOX_KEY) ?? '') as { x: number; y: number };
+    if (typeof at.x === 'number' && typeof at.y === 'number') return at;
+  } catch {
+    /* no saved spot */
+  }
+  return { x: 1, y: 0 };
+}
+
+/** Codes (and private labels, staff only) of what a busy tablet needs now or next. */
+function upcoming(t: BoardTablet) {
+  if (t.serving) return { slots: t.serving.slots, now: true };
+  return { slots: t.next_samples, now: false };
+}
+
+/**
+ * A box staff can drag anywhere on the floor, listing each running assessor's next sample so it
+ * can be prepared before the tablet asks for it.
+ */
+export function NextSamplesBox({
+  tablets,
+  canvas,
+}: {
+  tablets: BoardTablet[];
+  canvas: RefObject<HTMLDivElement | null>;
+}) {
+  const [at, setAt] = useState(savedNextBox);
+  const box = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ dx: number; dy: number } | undefined>(undefined);
+  const rows = tablets
+    .filter((t) => t.assessor_code && ['in_progress', 'serving', 'offline'].includes(t.stage))
+    .sort((a, b) =>
+      (a.assessor_code ?? '').localeCompare(b.assessor_code ?? '', undefined, { numeric: true }),
+    );
+  if (!rows.length) return null;
+  return (
+    <div
+      ref={box}
+      className="ui-board-next"
+      role="group"
+      aria-label="Next samples"
+      // 0..1 of the free space on each axis, so the box always stays wholly on the floor.
+      style={{
+        left: at.x * 100 + '%',
+        top: at.y * 100 + '%',
+        transform: `translate(${-at.x * 100}%, ${-at.y * 100}%)`,
+      }}
+      onPointerDown={(e) => {
+        const own = box.current?.getBoundingClientRect();
+        if (e.button !== 0 || !own) return;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        drag.current = { dx: e.clientX - own.left, dy: e.clientY - own.top };
+      }}
+      onPointerMove={(e) => {
+        const area = canvas.current?.getBoundingClientRect();
+        const own = box.current?.getBoundingClientRect();
+        if (!drag.current || !area || !own) return;
+        const free = (pointer: number, start: number, room: number, own: number) =>
+          room > own ? clamp((pointer - start) / (room - own), 0, 1) : 0;
+        setAt({
+          x: free(e.clientX - drag.current.dx, area.left, area.width, own.width),
+          y: free(e.clientY - drag.current.dy, area.top, area.height, own.height),
+        });
+      }}
+      onPointerUp={() => {
+        if (!drag.current) return;
+        drag.current = undefined;
+        try {
+          localStorage.setItem(NEXT_BOX_KEY, JSON.stringify(at));
+        } catch {
+          /* not remembered; it still works */
+        }
+      }}
+    >
+      <strong>Next samples</strong>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Assessor</th>
+            <th scope="col">Next sample</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((t) => {
+            const { slots, now } = upcoming(t);
+            return (
+              <tr key={t.terminal_id}>
+                <td>{t.assessor_code}</td>
+                <td>
+                  {slots.length
+                    ? slots.map((s) => (
+                        <span key={s.sample_id + ':' + s.position} className="ui-board-next-slot">
+                          <span className="ui-sample-code">{s.code}</span> {s.label}
+                        </span>
+                      ))
+                    : '—'}
+                  {now && <small> needed now</small>}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 /** The tablets list, the floor canvas and nothing else; data and actions come from the caller. */
@@ -210,6 +321,7 @@ export function BoothCanvas({
             </div>
           );
         })}
+        <NextSamplesBox tablets={tablets} canvas={canvas} />
       </div>
     </>
   );
@@ -744,6 +856,16 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
                   <div className="ui-stack" role="group" aria-label="Assessment on this tablet">
                     <strong>{tablet.name}</strong>
                     <p>{tablet.detail}</p>
+                    {!tablet.serving && !!tablet.next_samples.length && (
+                      <p>
+                        Prepare next:{' '}
+                        {tablet.next_samples.map((s) => (
+                          <span key={s.sample_id + ':' + s.position}>
+                            <span className="ui-sample-code">{s.code}</span> {s.label}{' '}
+                          </span>
+                        ))}
+                      </p>
+                    )}
                     <p className="ui-hint">Study: {studyOf(tablet.study_version_id)}</p>
                     {busyNow ? (
                       <>

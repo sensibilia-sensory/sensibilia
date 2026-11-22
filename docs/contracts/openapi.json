@@ -3,7 +3,7 @@
   "info": {
     "title": "Sensibilia API",
     "description": "Published sensory studies and idempotent response collection.",
-    "version": "0.1.1"
+    "version": "0.1.2"
   },
   "paths": {
     "/health": {
@@ -12701,6 +12701,14 @@
                 "type": "null"
               }
             ]
+          },
+          "next_samples": {
+            "items": {
+              "$ref": "#/components/schemas/SlotRead"
+            },
+            "type": "array",
+            "title": "Next Samples",
+            "default": []
           }
         },
         "type": "object",

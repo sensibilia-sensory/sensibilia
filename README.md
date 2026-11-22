@@ -65,7 +65,7 @@ Each method follows a published definition. Where conventions differ in the lite
 
 ## Project status
 
-Sensibilia is at version 0.1.1 and ready for rehearsal with synthetic studies; [CHANGELOG.md](CHANGELOG.md) lists what changed since, including fixes not yet in a release. Before you collect data from people, validate the install on your own laboratory server and tablets, including backup and restore and the staff workflow. For publication-quality use, also compare results with an established reference system and check the methods you rely on, in particular TCATA timing and digital Napping.
+Sensibilia is at version 0.1.2 and ready for rehearsal with synthetic studies; [CHANGELOG.md](CHANGELOG.md) lists what changed since, including fixes not yet in a release. Before you collect data from people, validate the install on your own laboratory server and tablets, including backup and restore and the staff workflow. For publication-quality use, also compare results with an established reference system and check the methods you rely on, in particular TCATA timing and digital Napping.
 
 ## Install (Windows, portable)
 
