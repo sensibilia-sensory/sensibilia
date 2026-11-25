@@ -57,6 +57,19 @@ https://localhost:1379, https://{$DEV_LAN_ADDRESS}:1379 {
 		header Content-Type application/x-x509-ca-cert
 		file_server
 	}
+	# The tablet app updates itself from here, over the connection it already trusts.
+	handle /tablet-app.json {
+		root * "{$SENSIBILIA_TABLET_APP:/data/tablet-app}"
+		header Cache-Control "no-store"
+		file_server
+	}
+	handle /tablet-app.apk {
+		root * "{$SENSIBILIA_TABLET_APP:/data/tablet-app}"
+		rewrite * /sensibilia-tablet.apk
+		header Content-Type application/vnd.android.package-archive
+		header Cache-Control "no-store"
+		file_server
+	}
 	handle {
 		reverse_proxy {$SENSIBILIA_UPSTREAM:app:8000} {
 			# Stream operational SSE without response buffering.

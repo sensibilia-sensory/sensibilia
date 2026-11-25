@@ -179,3 +179,41 @@ def test_tablet_app_is_unavailable_without_a_template(tmp_path):
     certificate.write_text(CERTIFICATE)
     with pytest.raises(tablet_app.Unavailable):
         tablet_app.ensure(tmp_path / "app", tmp_path / "out", certificate)
+
+
+def test_tablet_app_json_names_the_template_version_and_the_apk_checksum(tmp_path):
+    import hashlib
+    import json
+
+    app, out = tmp_path / "app", tmp_path / "data" / "tablet-app"
+    (app / "tablet-app").mkdir(parents=True)
+    out.mkdir(parents=True)
+    apk = out / tablet_app.APK_NAME
+    apk.write_bytes(b"signed apk")
+    # No template version (an older zip): no file, so tablets stay quiet.
+    tablet_app.describe(app, apk)
+    assert not (out / tablet_app.INFO_NAME).exists()
+    assert tablet_app.published(out) is None
+    (app / "tablet-app" / "template.json").write_text(
+        json.dumps({"version_code": 4, "version_name": "0.1.3"})
+    )
+    tablet_app.describe(app, apk)
+    info = json.loads((out / tablet_app.INFO_NAME).read_text())
+    assert info == {
+        "version_code": 4,
+        "version_name": "0.1.3",
+        "sha256": hashlib.sha256(b"signed apk").hexdigest(),
+    }
+    assert tablet_app.published(out) == {"version_code": 4, "version_name": "0.1.3"}
+    assert tablet_app.published(None) is None
+    # A broken template version removes the file rather than leaving a stale one.
+    (app / "tablet-app" / "template.json").write_text("{")
+    tablet_app.describe(app, apk)
+    assert not (out / tablet_app.INFO_NAME).exists()
+
+
+def test_tablet_app_version_is_read_from_the_user_agent():
+    agent = "Mozilla/5.0 (Linux; Android 14) Chrome/131 Mobile SensibiliaTablet/4/0.1.3"
+    assert tablet_app.reported(agent) == {"version_code": 4, "version_name": "0.1.3"}
+    assert tablet_app.reported("Mozilla/5.0 Chrome/131") is None
+    assert tablet_app.reported("SensibiliaTablet/x/0.1.3") is None

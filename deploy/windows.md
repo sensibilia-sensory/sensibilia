@@ -46,6 +46,11 @@ Back up, then unzip the new version over the old folder and choose Replace. `dat
 `settings.env` are not in the zip. The database is updated automatically on the next start, after
 a verified backup.
 
+Tablets then offer **Update tablet app** on their waiting screen (and in the corner menu, press and
+hold the top-left corner). One tap updates the app; the tablet stays set up. Run study shows which
+tablets still have the older app. Tablets with an app from before version 0.1.3 need the new app
+installed once by hand.
+
 ## Moving between Docker and portable
 
 Both use the same `data\` layout and the same backups. Copy `data\` (the database, images and

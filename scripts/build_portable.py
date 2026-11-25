@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 import shutil
 import subprocess
@@ -69,6 +70,16 @@ def run(*command: str, cwd: Path = ROOT) -> None:
 def version() -> str:
     text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     return re.search(r'^version = "([^"]+)"', text, re.MULTILINE).group(1)
+
+
+def tablet_app_version() -> dict:
+    """versionCode and versionName of the tablet app built from this checkout."""
+    text = (ROOT / "android" / "app" / "build.gradle.kts").read_text(encoding="utf-8")
+    code = re.search(r"versionCode = (\d+)", text)
+    name = re.search(r'versionName = "([^"]+)"', text)
+    if not code or not name:
+        raise SystemExit("android/app/build.gradle.kts has no versionCode or versionName.")
+    return {"version_code": int(code.group(1)), "version_name": name.group(1)}
 
 
 def commit() -> str:
@@ -145,6 +156,9 @@ def main() -> None:
             (app / "tablet-app").mkdir()
             shutil.copyfile(args.template_apk, app / "tablet-app" / "template.apk")
             shutil.copyfile(args.signer_jar, app / "tablet-app" / "signer.jar")
+            (app / "tablet-app" / "template.json").write_text(
+                json.dumps(tablet_app_version()), encoding="ascii"
+            )
             shutil.copytree(args.jre, app / "jre")
         stamp = f"{version()} {commit()} {datetime.now(UTC):%Y-%m-%dT%H:%MZ}\n"
         (app / "RELEASE").write_text(stamp, encoding="ascii")

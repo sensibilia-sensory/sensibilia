@@ -138,8 +138,13 @@ def test_board_serves_with_the_researcher_key_and_keeps_credentials_apart(
 
     assert tablet()["serving"] is None
     assert [(s["code"], s["label"]) for s in tablet()["next_samples"]] == [("731", "Private batch")]
+    # The steps ahead start with the next one; nothing has been served yet.
+    assert [[s["code"] for s in step] for step in tablet()["upcoming_samples"]] == [["731"]]
+    assert tablet()["current_samples"] == []
     assert client.post(ops, headers=token, json=command).status_code == 200
     assert tablet()["next_samples"] == []
+    # Requested: no longer ahead, not yet being assessed.
+    assert tablet()["upcoming_samples"] == [] and tablet()["current_samples"] == []
     serving = tablet()["serving"]
     assert serving["assignment_id"] == assignment["id"]
     assert serving["signal"]["state"] == "ready" and serving["signal"]["revision"] == 1
@@ -173,6 +178,8 @@ def test_board_serves_with_the_researcher_key_and_keeps_credentials_apart(
     stale = dict(served, client_event_id=str(uuid4()))
     assert client.post(url, headers=h, json=stale).status_code == 409
     assert tablet()["serving"] is None
+    # Served: the assessor is now assessing it.
+    assert [s["code"] for s in tablet()["current_samples"]] == ["731"]
     # The audit ledger names the credential class and the typed staff name.
     ledger = client.get("/operations/export", headers=h).text
     assert "researcher-key:" in ledger and "Anna" in ledger
@@ -180,3 +187,74 @@ def test_board_serves_with_the_researcher_key_and_keeps_credentials_apart(
     op = {"Authorization": "Bearer " + OPERATOR}
     assert client.get("/operator/dashboard", headers=op).status_code == 200
     assert client.get("/operator/dashboard", headers=h).status_code == 401
+
+
+def test_board_shows_each_tablet_app_version_and_whether_it_is_behind(
+    client, researcher_headers, tmp_path
+):
+    import json
+
+    h = researcher_headers
+    terminal, token = register(client, h)
+    url = f"/terminals/{terminal['id']}/assignment"
+
+    def tablet():
+        return client.get("/booth-board", headers=h).json()
+
+    # No baked app on this server (Docker) and a browser without the app: nothing to say.
+    assert client.get(url, headers=token).status_code == 200
+    board = tablet()
+    assert board["offered_app_version"] is None
+    assert board["tablets"][0]["app_version"] is None
+    assert board["tablets"][0]["app_update_available"] is False
+
+    agent = {**token, "User-Agent": "Mozilla/5.0 SensibiliaTablet/3/0.1.2"}
+    assert client.get(url, headers=agent).status_code == 200
+    assert tablet()["tablets"][0]["app_version"] == "0.1.2"
+    assert tablet()["tablets"][0]["app_update_available"] is False
+
+    (tmp_path / "tablet-app.json").write_text(
+        json.dumps({"version_code": 4, "version_name": "0.1.3", "sha256": "0" * 64})
+    )
+    client.app.state.settings.tablet_app_directory = tmp_path
+    try:
+        board = tablet()
+        assert board["offered_app_version"] == "0.1.3"
+        assert board["tablets"][0]["app_update_available"] is True
+        updated = {**token, "User-Agent": "Mozilla/5.0 SensibiliaTablet/4/0.1.3"}
+        assert client.get(url, headers=updated).status_code == 200
+        assert tablet()["tablets"][0]["app_update_available"] is False
+        # Only an authenticated tablet's report counts.
+        stranger = {"User-Agent": "SensibiliaTablet/1/0.0.1"}
+        assert client.get(url, headers=stranger).status_code == 401
+        assert tablet()["tablets"][0]["app_version"] == "0.1.3"
+    finally:
+        client.app.state.settings.tablet_app_directory = None
+
+
+def test_progress_counts_each_pass_through_a_sample_loop():
+    from types import SimpleNamespace as N
+
+    from sensibilia.booths import progress
+
+    def step(name, kind="question", children=()):
+        return N(id=name, kind=kind, title={"en": name}, data=N(children=list(children)))
+
+    flow = N(
+        nodes=[
+            step("intro"),
+            step("loop", "loop_samples", [step("serve", "serve_gate"), step("rate")]),
+            step("end"),
+        ]
+    )
+    session = N(
+        context={"language": "en"},
+        loop_assignments=[{"loop_id": "loop", "samples": [{"sample_id": "a"}, {"sample_id": "b"}]}],
+    )
+    # intro, serve a, rate a, serve b, rate b, end: six steps, not four.
+    at = progress(session, flow, N(step_id="rate", occurrence_id="loop:b"))
+    assert at == dict(
+        step_position=5, step_total=6, step_title="rate", loop_position=2, loop_total=2
+    )
+    assert progress(session, flow, None) == dict(step_position=None, step_total=6)
+    assert progress(session, flow, N(step_id="end", occurrence_id="study"))["step_position"] == 6

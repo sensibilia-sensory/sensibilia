@@ -6,11 +6,16 @@ The portable zip carries a template APK that was built with a placeholder root
 Only the bytes of ``res/raw/lab_ca.crt`` differ between laboratories, so nothing is recompiled.
 The signing key is created once per install in ``data/tablet-app/signing.p12``. Losing it means
 tablets must uninstall the app before a new one installs, so backups include it.
+
+Next to the APK, ``tablet-app.json`` gives its version and SHA-256, so tablets can offer to update
+themselves.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
+import re
 import secrets
 import shutil
 import struct
@@ -20,6 +25,7 @@ from pathlib import Path
 
 CA_ENTRY = "res/raw/lab_ca.crt"
 APK_NAME = "sensibilia-tablet.apk"
+INFO_NAME = "tablet-app.json"
 ALIAS = "sensibilia-tablet"
 
 
@@ -72,6 +78,7 @@ def ensure(app: Path, out: Path, certificate: Path) -> Path:
         and stamp.read_text().strip() == digest
         and apk.stat().st_mtime >= template.stat().st_mtime  # a newer template needs a new bake
     ):
+        describe(app, apk)
         return apk
     keystore, password_file = out / "signing.p12", out / "signing.pass"
     if not keystore.exists():
@@ -97,4 +104,52 @@ def ensure(app: Path, out: Path, certificate: Path) -> Path:
         unsigned.unlink(missing_ok=True)
         signed.unlink(missing_ok=True)
     stamp.write_text(digest, encoding="ascii")
+    describe(app, apk)
     return apk
+
+
+def describe(app: Path, apk: Path) -> None:
+    """Write tablet-app.json for this APK, or remove it when the template has no version."""
+    info = apk.parent / INFO_NAME
+    try:
+        version = json.loads((app / "tablet-app" / "template.json").read_text(encoding="ascii"))
+        code, name = int(version["version_code"]), str(version["version_name"])
+    except (OSError, ValueError, KeyError, TypeError):
+        info.unlink(missing_ok=True)  # tablets then stay quiet rather than act on a guess
+        return
+    text = json.dumps(
+        {
+            "version_code": code,
+            "version_name": name,
+            "sha256": hashlib.sha256(apk.read_bytes()).hexdigest(),
+        }
+    )
+    if not info.is_file() or info.read_text(encoding="ascii") != text:
+        temporary = info.with_suffix(".tmp")
+        temporary.write_text(text, encoding="ascii")
+        temporary.replace(info)  # a tablet never reads a half-written file
+
+
+REPORTED = re.compile(r"\bSensibiliaTablet/(\d{1,9})/([0-9A-Za-z.+-]{1,32})")
+
+
+def reported(user_agent: str) -> dict | None:
+    """The app version a tablet names in its user agent (``SensibiliaTablet/<code>/<name>``)."""
+    match = REPORTED.search(user_agent)
+    if not match:
+        return None
+    return {"version_code": int(match.group(1)), "version_name": match.group(2)}
+
+
+def published(directory: Path | None) -> dict | None:
+    """The tablet app version this server offers, from tablet-app.json, or None."""
+    if directory is None:
+        return None
+    try:
+        info = json.loads((directory / INFO_NAME).read_text(encoding="ascii"))
+        return {
+            "version_code": int(info["version_code"]),
+            "version_name": str(info["version_name"]),
+        }
+    except (OSError, ValueError, KeyError, TypeError):
+        return None

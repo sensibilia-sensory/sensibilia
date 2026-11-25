@@ -12,6 +12,8 @@ Windows only.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import os
 import socket
 import ssl
@@ -94,6 +96,13 @@ def main() -> None:
                 (Path(folder) / "t.apk").write_bytes(apk)
                 with zipfile.ZipFile(Path(folder) / "t.apk") as archive:
                     assert archive.read("res/raw/lab_ca.crt") == root, "APK holds another root"
+                # The app updates itself over HTTPS from the same files.
+                status, info = fetch("https://localhost:1379/tablet-app.json")
+                assert status == 200, f"tablet-app.json answered {status}"
+                info = json.loads(info)
+                assert info["sha256"] == hashlib.sha256(apk).hexdigest(), "checksum differs"
+                assert info["version_code"] >= 1 and info["version_name"], "no app version"
+                assert fetch("https://localhost:1379/tablet-app.apk") == (200, apk), "HTTPS apk"
             else:
                 assert status == 404, f"expected no tablet app, got {status}"
             for command in ("backup", "status"):

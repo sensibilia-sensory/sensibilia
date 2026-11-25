@@ -1806,6 +1806,8 @@ export interface components {
             tablets: components["schemas"]["BoardTablet"][];
             /** Server Time */
             server_time: string;
+            /** Offered App Version */
+            offered_app_version?: string | null;
         };
         /**
          * BoardServing
@@ -1849,6 +1851,33 @@ export interface components {
              * @default []
              */
             next_samples: components["schemas"]["SlotRead"][];
+            /**
+             * Current Samples
+             * @default []
+             */
+            current_samples: components["schemas"]["SlotRead"][];
+            /**
+             * Upcoming Samples
+             * @default []
+             */
+            upcoming_samples: components["schemas"]["SlotRead"][][];
+            /** Step Position */
+            step_position?: number | null;
+            /** Step Total */
+            step_total?: number | null;
+            /** Step Title */
+            step_title?: string | null;
+            /** Loop Position */
+            loop_position?: number | null;
+            /** Loop Total */
+            loop_total?: number | null;
+            /** App Version */
+            app_version?: string | null;
+            /**
+             * App Update Available
+             * @default false
+             */
+            app_update_available: boolean;
         };
         /** Booth */
         Booth: {

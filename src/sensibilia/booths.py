@@ -197,11 +197,28 @@ class BoardTablet(BaseModel):
     serving: BoardServing | None = None
     # The samples the assessor's next serving step will ask for, so staff can prepare them.
     next_samples: list[SlotRead] = []
+    # The samples of the assessor's last served step (what they are assessing now), and the slots
+    # of each serving step still ahead in order, so staff can see a few steps in advance.
+    current_samples: list[SlotRead] = []
+    upcoming_samples: list[list[SlotRead]] = []
+    # Where the assessor is: the step they last reached out of every step they meet in order, with
+    # each pass through a sample loop counted separately (guards may still skip some), its title,
+    # and which sample of its loop that pass is for.
+    step_position: int | None = None
+    step_total: int | None = None
+    step_title: str | None = None
+    loop_position: int | None = None
+    loop_total: int | None = None
+    # The tablet app version this tablet last reported, and whether the server has a newer one.
+    app_version: str | None = None
+    app_update_available: bool = False
 
 
 class BoardRead(BaseModel):
     tablets: list[BoardTablet]
     server_time: str
+    # The tablet app version this server offers, or None when it has no baked app (Docker).
+    offered_app_version: str | None = None
 
 
 class TabletOperations(BaseModel):
@@ -597,10 +614,11 @@ def run_order(nodes, assignments, occurrence="study"):
             yield node, occurrence
 
 
-def next_samples(db, session, flow, last):
-    """The slots of the first serving step at or after the assessor's position not yet requested.
+def upcoming_steps(db, session, flow, last, limit=1):
+    """The slots of up to `limit` serving steps at or after the assessor's position, not yet
+    requested, in the order the assessor meets them.
 
-    A guard may still skip it (a restriction, for example); this is what to prepare, not a promise.
+    A guard may still skip one (a restriction, for example); this is what to prepare, not a promise.
     """
     order = list(
         run_order(flow.nodes, {a["loop_id"]: a["samples"] for a in session.loop_assignments})
@@ -617,14 +635,72 @@ def next_samples(db, session, flow, last):
         (s.step_id, s.occurrence_id)
         for s in db.scalars(select(ServingSignal).where(ServingSignal.session_id == session.id))
     }
+    steps = []
     for node, occurrence in order[at:]:
+        if len(steps) >= limit:
+            break
         if node.kind != "serve_gate" or (str(node.id), occurrence) in requested:
             continue
         try:
-            return gate_slots(db, session, node, occurrence)
+            steps.append(gate_slots(db, session, node, occurrence))
         except HTTPException:
             continue
-    return []
+    return steps
+
+
+def next_samples(db, session, flow, last):
+    """The slots of the first serving step still ahead, or [] when none is."""
+    steps = upcoming_steps(db, session, flow, last)
+    return steps[0] if steps else []
+
+
+def current_samples(db, session, flow):
+    """The slots of the latest serving request staff resolved by serving it, or []."""
+    signal = db.scalar(
+        select(ServingSignal)
+        .where(
+            ServingSignal.session_id == session.id,
+            ServingSignal.state.in_(["served", "manual", "received"]),
+        )
+        .order_by(ServingSignal.requested_at.desc())
+        .limit(1)
+    )
+    node = signal and next((n for n in walk(flow.nodes) if str(n.id) == signal.step_id), None)
+    if not node:
+        return []
+    try:
+        return gate_slots(db, session, node, signal.occurrence_id)
+    except HTTPException:
+        return []
+
+
+def progress(session, flow, last):
+    """Where the assessor is in the unrolled flow, loop passes counted one by one."""
+    assignments = {a["loop_id"]: a["samples"] for a in session.loop_assignments}
+    order = list(run_order(flow.nodes, assignments))
+    at = next(
+        (
+            i
+            for i, (n, occurrence) in enumerate(order)
+            if last and str(n.id) == last.step_id and occurrence == last.occurrence_id
+        ),
+        None,
+    )
+    if at is None:
+        return dict(step_position=None, step_total=len(order))
+    node, occurrence = order[at]
+    language = session.context.get("language", "en")
+    result = dict(
+        step_position=at + 1,
+        step_total=len(order),
+        step_title=node.title.get(language) or next(iter(node.title.values()), None),
+    )
+    loop_id, _, sample_id = occurrence.partition(":")
+    samples = assignments.get(loop_id, [])
+    index = next((i for i, x in enumerate(samples) if x["sample_id"] == sample_id), None)
+    if sample_id and index is not None:
+        result.update(loop_position=index + 1, loop_total=len(samples))
+    return result
 
 
 def board_stage(db, session, process_id):
@@ -653,27 +729,47 @@ def board_stage(db, session, process_id):
         silent = (datetime.now(UTC) - seen).total_seconds()
         if silent > 45:
             return "offline", f"No contact for {int(silent // 60) or 1} min"
-    steps = [n for n in walk(flow.nodes) if n.kind not in {"group", "loop_samples"}]
     last = db.scalar(
         select(PathEvent).where(PathEvent.session_id == session.id).order_by(PathEvent.seq.desc())
     )
-    position = next((i + 1 for i, n in enumerate(steps) if last and str(n.id) == last.step_id), 0)
-    now = f"Test in progress, step {position} of {len(steps)}" if position else "Test starting"
+    at = progress(session, flow, last)
+    now = (
+        f"Test in progress, step {at['step_position']} of {at['step_total']}"
+        if at["step_position"]
+        else "Test starting"
+    )
+    if at.get("loop_position"):
+        now += f" (sample {at['loop_position']} of {at['loop_total']})"
     upcoming = [s.code for s in next_samples(db, session, flow, last)]
     if upcoming:
         now += f" · next sample{'s' if len(upcoming) > 1 else ''} " + " ".join(upcoming)
     return "in_progress", now
 
 
-def upcoming_slots(db, session):
+#: How many serving steps ahead the board reports for each running assessor.
+UPCOMING_LIMIT = 10
+
+
+def sample_plan(db, session, stage):
+    """Next, current and upcoming slots of a running assessment, for the board."""
+    if stage not in {"in_progress", "serving", "offline"}:
+        return {}
     flow = DraftFlowV2.model_validate(db.get(StudyVersion, session.study_version_id).form)
     last = db.scalar(
         select(PathEvent).where(PathEvent.session_id == session.id).order_by(PathEvent.seq.desc())
     )
-    return next_samples(db, session, flow, last)
+    upcoming = upcoming_steps(db, session, flow, last, UPCOMING_LIMIT)
+    return dict(
+        next_samples=upcoming[0] if upcoming and stage == "in_progress" else [],
+        current_samples=current_samples(db, session, flow),
+        upcoming_samples=upcoming,
+        **progress(session, flow, last),
+    )
 
 
-def board(db, process_id):
+def board(db, process_id, apps=None, offered=None):
+    """Each tablet's stage; `apps`: app versions tablets reported, `offered`: the server's."""
+    apps = apps or {}
     tablets = []
     for terminal in db.scalars(
         select(Terminal).where(Terminal.retired_at.is_(None)).order_by(Terminal.name)
@@ -685,6 +781,7 @@ def board(db, process_id):
             if session
             else ("waiting", "Waiting for assignment")
         )
+        app_version = apps.get(terminal.id)
         tablets.append(
             BoardTablet(
                 terminal_id=terminal.id,
@@ -697,10 +794,20 @@ def board(db, process_id):
                 stage=stage,
                 detail=detail,
                 serving=board_serving(db, session) if session and stage == "serving" else None,
-                next_samples=upcoming_slots(db, session) if stage == "in_progress" else [],
+                **(sample_plan(db, session, stage) if session else {}),
+                app_version=app_version["version_name"] if app_version else None,
+                app_update_available=bool(
+                    app_version
+                    and offered
+                    and offered["version_code"] > app_version["version_code"]
+                ),
             )
         )
-    return BoardRead(tablets=tablets, server_time=timestamp())
+    return BoardRead(
+        tablets=tablets,
+        server_time=timestamp(),
+        offered_app_version=offered["version_name"] if offered else None,
+    )
 
 
 def install(app, database, researcher, assigned_session, commit):
@@ -1213,7 +1320,14 @@ def install(app, database, researcher, assigned_session, commit):
     )
     def booth_board(db: DB):
         """Where each tablet is and what its assessor is doing; no answers are exposed."""
-        return board(db, app.state.operations_process)
+        from sensibilia import tablet_app
+
+        return board(
+            db,
+            app.state.operations_process,
+            app.state.tablet_apps,
+            tablet_app.published(app.state.settings.tablet_app_directory),
+        )
 
     @app.post(
         "/booth-board/operations",

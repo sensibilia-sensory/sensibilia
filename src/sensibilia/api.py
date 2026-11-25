@@ -21,6 +21,7 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from sensibilia import tablet_app
 from sensibilia.assets import (
     MAX_BODY,
     AssetManifest,
@@ -1930,7 +1931,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/terminals/{terminal_id}/assignment", response_model=TerminalTask, tags=["tablets"])
     def terminal_task(
-        terminal_id: UUID, db: DB, credentials: Annotated[Credentials, Depends(session_bearer)]
+        terminal_id: UUID,
+        db: DB,
+        request: Request,
+        credentials: Annotated[Credentials, Depends(session_bearer)],
     ):
         terminal = db.get(Terminal, str(terminal_id))
         if (
@@ -1942,6 +1946,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(
                 401, "Active terminal credential required", headers={"WWW-Authenticate": "Bearer"}
             )
+        # The tablet app names its version in its user agent; kept for Run study.
+        reported = tablet_app.reported(request.headers.get("user-agent", ""))
+        if reported:
+            app.state.tablet_apps[terminal.id] = reported
         assigned = current_assignment(db, terminal.id)
         return TerminalTask(
             terminal_id=terminal.id,
@@ -2842,5 +2850,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from sensibilia.booths import install
 
     app.state.operations_process = identifier()
+    # Last tablet app version each terminal reported; display state, refilled within seconds.
+    app.state.tablet_apps = {}
     install(app, database, researcher, assigned_session, commit)
     return app

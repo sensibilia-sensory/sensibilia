@@ -32,6 +32,13 @@ export interface DataTableProps<T> {
   /** Room for three row actions in the Actions column. */
   wideActions?: boolean;
   emptyText?: string;
+  /** Extra controls for the table's toolbar, such as a column chooser. */
+  tools?: ReactNode;
+  /**
+   * Columns can be widened or narrowed by dragging the edge of their header (double-click the
+   * edge to fit the content). The widths are kept in this browser under this key.
+   */
+  resizable?: string;
   /**
    * Rows can be dragged by a grip. `onMove` says which row was released on which row
    * and on which side; `canDrag` limits it to some rows. Off while the table is sorted or filtered,
@@ -76,6 +83,140 @@ export const technical = { technical: true };
 const isTechnical = <T,>(c: ColumnDef<T>) =>
   !!(c.meta as { technical?: boolean } | undefined)?.technical;
 
+const MIN_WIDTH = 40;
+const NEW_COLUMN_WIDTH = 120;
+
+/** Column widths the viewer set, kept per browser under `key`; empty until a column is resized. */
+function useColumnWidths(key: string | undefined) {
+  const storage = 'sensibilia.table-widths.' + key;
+  const [sizes, setSizes] = useState<Record<string, number>>(() => {
+    if (!key) return {};
+    try {
+      const saved = JSON.parse(localStorage.getItem(storage) ?? '') as unknown;
+      return saved && typeof saved === 'object' ? (saved as Record<string, number>) : {};
+    } catch {
+      return {};
+    }
+  });
+  const table = useRef<HTMLTableElement>(null);
+  const save = (next: Record<string, number>) => {
+    try {
+      if (Object.keys(next).length) localStorage.setItem(storage, JSON.stringify(next));
+      else localStorage.removeItem(storage);
+    } catch {
+      /* not remembered; it still works until reload */
+    }
+  };
+  /** Every header's current width, so resizing one column leaves the others where they are. */
+  const measure = () => {
+    const now: Record<string, number> = { ...sizes };
+    table.current
+      ?.querySelectorAll<HTMLTableCellElement>('thead th[data-column]')
+      .forEach((th) => (now[th.dataset.column!] = th.getBoundingClientRect().width));
+    return now;
+  };
+  const active = Object.keys(sizes).length > 0;
+  return {
+    table,
+    active,
+    of: (id: string) => sizes[id] ?? NEW_COLUMN_WIDTH,
+    measure,
+    set: (next: Record<string, number>, keep = false) => {
+      setSizes(next);
+      if (keep) save(next);
+    },
+    /** As wide as the column's widest content, like double-clicking a column edge in a sheet. */
+    fit: (id: string) => {
+      const cells = table.current?.querySelectorAll<HTMLElement>(
+        `th[data-column="${CSS.escape(id)}"], td.ui-col-${CSS.escape(id)} > .ui-cell`,
+      );
+      let widest = MIN_WIDTH;
+      cells?.forEach((cell) => {
+        const style = getComputedStyle(cell.closest('th,td') ?? cell);
+        const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+        const content = Array.from(cell.children).reduce(
+          (sum, child) => sum + (child as HTMLElement).scrollWidth,
+          0,
+        );
+        widest = Math.max(widest, Math.max(cell.scrollWidth, content) + padding + 1);
+      });
+      const next = { ...measure(), [id]: Math.ceil(widest) };
+      setSizes(next);
+      save(next);
+    },
+    reset: () => {
+      setSizes({});
+      save({});
+    },
+  };
+}
+
+/** The draggable edge of a column header; arrow keys resize too, double-click fits the content. */
+function ColumnEdge({
+  column,
+  name,
+  widths,
+}: {
+  column: string;
+  name: string;
+  widths: ReturnType<typeof useColumnWidths>;
+}) {
+  const drag = useRef<{ x: number; base: Record<string, number> } | undefined>(undefined);
+  const edge = useRef<HTMLSpanElement>(null);
+  // The header's shown width, so assistive technology can announce it.
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const th = edge.current?.parentElement;
+    if (!th) return;
+    const observer = new ResizeObserver(() => setWidth(Math.round(th.offsetWidth)));
+    observer.observe(th);
+    return () => observer.disconnect();
+  }, []);
+  const resize = (base: Record<string, number>, by: number, keep: boolean) =>
+    widths.set({ ...base, [column]: Math.max(MIN_WIDTH, base[column] + by) }, keep);
+  return (
+    <span
+      ref={edge}
+      className="ui-col-resize"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label={'Resize column ' + name}
+      aria-valuenow={width}
+      aria-valuemin={0}
+      aria-valuemax={10000}
+      tabIndex={0}
+      title="Drag to resize; double-click to fit"
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        drag.current = { x: e.clientX, base: widths.measure() };
+      }}
+      onPointerMove={(e) => {
+        if (drag.current) resize(drag.current.base, e.clientX - drag.current.x, false);
+      }}
+      onPointerUp={(e) => {
+        if (!drag.current) return;
+        resize(drag.current.base, e.clientX - drag.current.x, true);
+        drag.current = undefined;
+      }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        widths.fit(column);
+      }}
+      onKeyDown={(e) => {
+        const step = e.key === 'ArrowRight' ? 16 : e.key === 'ArrowLeft' ? -16 : 0;
+        if (!step) return;
+        e.preventDefault();
+        e.stopPropagation();
+        resize(widths.measure(), step, true);
+      }}
+    />
+  );
+}
+
 export function DataTable<T>({
   id,
   label,
@@ -91,8 +232,11 @@ export function DataTable<T>({
   wide = false,
   wideActions = false,
   emptyText = 'No records.',
+  tools,
+  resizable,
   reorder,
 }: DataTableProps<T>) {
+  const widths = useColumnWidths(resizable);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [selection, setSelection] = useState<RowSelectionState>(initialSelection);
   const [filter, setFilter] = useState('');
@@ -227,6 +371,12 @@ export function DataTable<T>({
         }
         secondary={
           <>
+            {tools}
+            {widths.active && (
+              <Button compact onClick={widths.reset}>
+                Reset column widths
+              </Button>
+            )}
             {columns.some(isTechnical) && (
               <Button compact onClick={() => setShowTechnical(!showTechnical)}>
                 {showTechnical ? 'Hide technical IDs' : 'Show technical IDs'}
@@ -250,7 +400,18 @@ export function DataTable<T>({
         role="region"
         aria-label={`${label} scroll area`}
       >
-        <table aria-rowcount={isVirtual ? rows.length + 1 : undefined}>
+        <table
+          aria-rowcount={isVirtual ? rows.length + 1 : undefined}
+          ref={widths.table}
+          // Once a column is resized every column has a width, and the table is as wide as they are.
+          style={
+            widths.active
+              ? {
+                  width: table.getVisibleLeafColumns().reduce((sum, c) => sum + widths.of(c.id), 0),
+                }
+              : undefined
+          }
+        >
           <caption className="sr-only">{label}</caption>
           <thead>
             {table.getHeaderGroups().map((group) => (
@@ -264,7 +425,9 @@ export function DataTable<T>({
                   <th
                     key={header.id}
                     scope="col"
+                    data-column={header.column.id}
                     className={`ui-col-${header.column.id}`}
+                    style={widths.active ? { width: widths.of(header.column.id) } : undefined}
                     aria-sort={
                       header.column.getCanSort()
                         ? header.column.getIsSorted() === 'asc'
@@ -291,6 +454,17 @@ export function DataTable<T>({
                       </button>
                     ) : (
                       flexRender(header.column.columnDef.header, header.getContext())
+                    )}
+                    {resizable && (
+                      <ColumnEdge
+                        column={header.column.id}
+                        name={
+                          typeof header.column.columnDef.header === 'string'
+                            ? header.column.columnDef.header
+                            : header.column.id
+                        }
+                        widths={widths}
+                      />
                     )}
                   </th>
                 ))}

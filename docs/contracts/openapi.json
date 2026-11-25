@@ -12578,6 +12578,17 @@
           "server_time": {
             "type": "string",
             "title": "Server Time"
+          },
+          "offered_app_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offered App Version"
           }
         },
         "type": "object",
@@ -12709,6 +12720,96 @@
             "type": "array",
             "title": "Next Samples",
             "default": []
+          },
+          "current_samples": {
+            "items": {
+              "$ref": "#/components/schemas/SlotRead"
+            },
+            "type": "array",
+            "title": "Current Samples",
+            "default": []
+          },
+          "upcoming_samples": {
+            "items": {
+              "items": {
+                "$ref": "#/components/schemas/SlotRead"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Upcoming Samples",
+            "default": []
+          },
+          "step_position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Position"
+          },
+          "step_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Total"
+          },
+          "step_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Title"
+          },
+          "loop_position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loop Position"
+          },
+          "loop_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loop Total"
+          },
+          "app_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "App Version"
+          },
+          "app_update_available": {
+            "type": "boolean",
+            "title": "App Update Available",
+            "default": false
           }
         },
         "type": "object",

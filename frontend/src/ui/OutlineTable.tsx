@@ -43,6 +43,9 @@ export function OutlineTable({
 }) {
   const [focused, setFocused] = useState<string>();
   const [dragging, setDragging] = useState<string>();
+  // The row being dragged, readable before React re-renders: a fast drag delivers dragover and drop
+  // right after dragstart, while `dragging` from the last render is still empty.
+  const draggingNow = useRef<string | undefined>(undefined);
   const [over, setOver] = useState<{ id: string; position: OutlineDropPosition }>();
   const draggable = Boolean(onDrop) && !readOnly;
   const positionAt = (e: React.DragEvent<HTMLTableRowElement>, container?: boolean) => {
@@ -59,6 +62,7 @@ export function OutlineTable({
         : 'after';
   };
   const endDrag = () => {
+    draggingNow.current = undefined;
     setDragging(undefined);
     setOver(undefined);
   };
@@ -97,12 +101,14 @@ export function OutlineTable({
                   if (!draggable) return;
                   e.dataTransfer.effectAllowed = 'move';
                   e.dataTransfer.setData('text/plain', row.title);
+                  draggingNow.current = row.id;
                   setDragging(row.id);
                 }}
                 onDragOver={(e) => {
-                  if (!dragging) return;
+                  const dragged = draggingNow.current;
+                  if (!dragged) return;
                   const position = positionAt(e, row.container);
-                  if (canDrop && !canDrop(dragging, row.id, position)) {
+                  if (canDrop && !canDrop(dragged, row.id, position)) {
                     if (over) setOver(undefined);
                     return;
                   }
@@ -114,11 +120,12 @@ export function OutlineTable({
                 onDrop={(e) => {
                   // Decide from this event, not from state set by an earlier dragover: a fast drop
                   // can arrive before React has re-rendered.
-                  if (!dragging) return;
+                  const dragged = draggingNow.current;
+                  if (!dragged) return;
                   const position = positionAt(e, row.container);
-                  if (canDrop && !canDrop(dragging, row.id, position)) return;
+                  if (canDrop && !canDrop(dragged, row.id, position)) return;
                   e.preventDefault();
-                  onDrop?.(dragging, row.id, position);
+                  onDrop?.(dragged, row.id, position);
                   endDrag();
                 }}
                 onDragEnd={endDrag}

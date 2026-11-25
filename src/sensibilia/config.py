@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     # This computer's address on the laboratory network, detected by the launchers. Pairing
     # links use it when staff open the researcher pages on the server itself (localhost).
     lan_address: str = ""
+    # Where the portable install keeps the baked tablet app and tablet-app.json.
+    tablet_app_directory: Path | None = None
 
     @model_validator(mode="after")
     def separate_roles(self):

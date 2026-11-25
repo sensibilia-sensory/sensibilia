@@ -186,6 +186,28 @@ test('run study: place tablets by dragging, watch status, arrange booths', async
   await page.getByLabel('Booth name', { exact: true }).fill('Bench');
   await page.getByRole('button', { name: 'Save name', exact: true }).click();
   await expect(page.getByRole('button', { name: /^Booth Bench,/ })).toBeVisible();
+  // The name is only shown on this computer: the stored layout keeps the booth's own label.
+  const stored = (await (await request.get('/rooms', { headers: researcherHeaders })).json()).find(
+    (r: { name: string }) => r.name === roomName,
+  );
+  expect(stored.booths.map((b: { label: string }) => b.label)).toContain('3');
+  expect(stored.booths.map((b: { label: string }) => b.label)).not.toContain('Bench');
+  // A name chosen in the list shows on the floor too.
+  await page.getByRole('tab', { name: 'List', exact: true }).click();
+  const listed = page.getByTestId('run-board').locator('tr', { hasText: paired.name });
+  await listed.getByRole('button', { name: /, rename$/ }).dblclick();
+  const listName = page.getByRole('textbox', { name: 'Booth name', exact: true });
+  await listName.fill('Window ' + roomName);
+  await listName.press('Enter');
+  await expect(listed).toContainText('Window ' + roomName);
+  await page.getByRole('tab', { name: 'Floor', exact: true }).click();
+  await expect(
+    page.getByRole('button', {
+      name: 'Booth Window ' + roomName + ',' + ' ' + paired.name,
+      exact: false,
+    }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: /^Booth Bench,/ }).click();
   await page.getByRole('button', { name: 'Remove booth…', exact: true }).click();
   await page.getByRole('button', { name: 'Remove booth', exact: true }).click();
   await expect(page.getByRole('button', { name: /^Booth Bench,/ })).toHaveCount(0);
@@ -270,7 +292,10 @@ test('run study: the list shows who needs samples and opens the serving panel', 
     'true',
   );
   const row = page.getByTestId('run-board').locator('tr', { hasText: paired.name });
-  await expect(row).toContainText('Needs samples 731', { timeout: 10000 });
+  await expect(row).toContainText('Needs samples', { timeout: 10000 });
+  await expect(row.locator('td:has(.ui-board-next-now)')).toContainText(
+    '731 Private batch needed now',
+  );
   await row.getByRole('button', { name: 'Serve samples', exact: true }).click();
   await expect(page.getByRole('tab', { name: 'Floor', exact: true })).toHaveAttribute(
     'aria-selected',
@@ -463,6 +488,64 @@ test('a paired tablet claims its assessment and asks staff to confirm before han
 });
 
 test(
+  'run study gallery: list columns, booth names and column widths',
+  { tag: '@audit' },
+  async ({ page }) => {
+    await page.goto('/dev/ui');
+    await page.getByRole('button', { name: 'Run study', exact: true }).click();
+    const gallery = page.getByRole('region', { name: 'Run study fixtures', exact: true });
+    await gallery.getByRole('tab', { name: 'List', exact: true }).click();
+    const board = gallery
+      .getByRole('tabpanel', { name: 'List', exact: true })
+      .getByTestId('run-board');
+    // The list shows what the floor shows: step (loop passes counted), samples ahead, next
+    // highlighted.
+    const row2 = board.locator('tr', { hasText: 'Tablet 02' });
+    await expect(row2).toContainText('9 of 26');
+    await expect(row2).toContainText('Liking');
+    await expect(row2).toContainText('2 of 5');
+    await expect(row2.locator('td:has(.ui-board-next-now)')).toHaveText('482 Product C');
+    await expect(board.getByRole('columnheader', { name: '3rd next' })).toBeVisible();
+    // The Columns menu hides and shows columns, sets how far ahead, and hides product labels.
+    const listPanel = gallery.getByRole('tabpanel', { name: 'List', exact: true });
+    await listPanel.getByRole('button', { name: 'Columns', exact: true }).click();
+    const menu = listPanel.getByRole('region', { name: 'Columns', exact: true });
+    await menu.getByRole('checkbox', { name: 'Study', exact: true }).uncheck();
+    await expect(board.getByRole('columnheader', { name: 'Study' })).toHaveCount(0);
+    await menu.getByRole('combobox', { name: 'Upcoming samples' }).selectOption('1');
+    await expect(board.getByRole('columnheader', { name: '2nd next' })).toHaveCount(0);
+    await menu.getByRole('checkbox', { name: 'Product labels' }).uncheck();
+    await expect(row2).not.toContainText('Product C');
+    await axeScan(page, '#run-study');
+    await menu.getByRole('button', { name: 'Close Columns' }).click();
+    // Rename a booth from the list by double-clicking its name, as on the floor.
+    await expect(board.getByRole('button', { name: /^Rename/ })).toHaveCount(0);
+    await board.getByRole('button', { name: 'Booth 2, rename', exact: true }).dblclick();
+    const name = board.getByRole('textbox', { name: 'Booth name', exact: true });
+    await name.fill('Window');
+    await name.press('Enter');
+    await expect(row2).toContainText('Window');
+    // Columns resize by dragging a header edge, keep their width, and reset from the toolbar.
+    const tabletHeader = board.locator('th[data-column="tablet"]');
+    const before = (await tabletHeader.boundingBox())!;
+    const edge = (await board
+      .getByRole('separator', { name: 'Resize column Tablet', exact: true })
+      .boundingBox())!;
+    await page.mouse.move(edge.x + edge.width / 2, edge.y + edge.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(edge.x + 120, edge.y + edge.height / 2, { steps: 5 });
+    await page.mouse.up();
+    const after = (await tabletHeader.boundingBox())!;
+    expect(after.width).toBeGreaterThan(before.width + 100);
+    await gallery.getByRole('tab', { name: 'List empty', exact: true }).click();
+    await gallery.getByRole('tab', { name: 'List', exact: true }).click();
+    expect((await tabletHeader.boundingBox())!.width).toBeCloseTo(after.width, 0);
+    await board.getByRole('button', { name: 'Reset column widths' }).click();
+    await expect(board.getByRole('button', { name: 'Reset column widths' })).toHaveCount(0);
+  },
+);
+
+test(
   'run study gallery: floor stages, serving request, list, handover, staff panel and add step menu',
   { tag: '@audit' },
   async ({ page }) => {
@@ -472,10 +555,49 @@ test(
     await expect(gallery.getByRole('button', { name: /^Booth \d,/ })).toHaveCount(6);
     await expect(gallery).toContainText('Needs samples 731 204');
     await expect(gallery).toContainText('Has completed the test');
-    // The Next samples box lists every running assessor and stays wholly on the floor when dragged.
+    // Each running booth shows its next sample underneath by default; the table is off.
+    const booth2 = gallery.getByRole('button', { name: /^Booth 2,/ });
+    await expect(booth2).toContainText('Next: 482 Product C');
+    await expect(booth2).not.toContainText('· next sample');
     const next = gallery.getByRole('group', { name: 'Next samples', exact: true });
+    await expect(next).toHaveCount(0);
+    const options = gallery.getByRole('group', { name: 'Floor view', exact: true });
+    await options.getByRole('switch', { name: 'Next sample under booths' }).uncheck();
+    await expect(booth2).not.toContainText('Next: 482');
+    await expect(booth2).toContainText('· next sample 482');
+    await options.getByRole('switch', { name: 'Next sample under booths' }).check();
+    // Double-click renames a booth in place; Escape leaves it unchanged.
+    await booth2.dblclick();
+    const rename = gallery.getByRole('textbox', { name: 'Booth name', exact: true });
+    await rename.fill('3');
+    await expect(gallery.getByText('Another booth already has this name.')).toBeVisible();
+    await rename.press('Escape');
+    await expect(gallery.getByRole('button', { name: /^Booth 2,/ })).toBeVisible();
+    await gallery.getByRole('button', { name: /^Booth 2,/ }).dblclick();
+    await rename.fill('Window');
+    await rename.press('Enter');
+    await expect(gallery.getByRole('button', { name: /^Booth Window,/ })).toBeVisible();
+    await axeScan(page, '#run-study');
+
+    // The sample table: what each running assessor is assessing and the next steps, next
+    // highlighted; it stays wholly on the floor when dragged.
+    await gallery.getByRole('tab', { name: 'Sample table', exact: true }).click();
     await expect(next.getByRole('row')).toHaveCount(4);
-    await expect(next.getByRole('row', { name: /A002/ })).toContainText('482 Product C');
+    const a002 = next.getByRole('row', { name: /A002/ });
+    await expect(a002.getByRole('cell')).toHaveText([
+      'A002',
+      '2',
+      '731 Product A',
+      '482 Product C',
+      '519 Product D',
+      '640 Product E',
+    ]);
+    await expect(next.locator('td.ui-board-next-now')).toHaveCount(3);
+    await expect(next.getByRole('row', { name: /A001/ })).toContainText('needed now');
+    await gallery
+      .getByRole('combobox', { name: 'Upcoming samples in the table' })
+      .selectOption('5');
+    await expect(a002.getByRole('cell')).toHaveCount(8);
     const floor = (await gallery.getByRole('group', { name: 'Booths' }).boundingBox())!;
     const inside = async () => {
       const box = (await next.boundingBox())!;
@@ -521,6 +643,10 @@ test(
     await expect(board.getByRole('button', { name: 'Next assessor' })).toBeEnabled();
     await expect(board.getByRole('button', { name: 'Start first assessment' })).toBeEnabled();
     await expect(board).toContainText('In progress');
+    // Tablets that report their app version get a column; the one behind says so.
+    await expect(board.getByRole('columnheader', { name: 'Tablet app' })).toBeVisible();
+    await expect(board.locator('tr', { hasText: 'Tablet 01' })).toContainText('0.1.2 → 0.1.3');
+    await expect(board.locator('tr', { hasText: 'Tablet 02' })).not.toContainText('→');
     await capture(page, 'run-study-list', 'desktop', '#run-study');
     await gallery.getByRole('tab', { name: 'List empty', exact: true }).click();
     await expect(gallery.getByText('No tablets or booths yet.')).toBeVisible();
@@ -533,6 +659,14 @@ test(
     await gallery.getByRole('tab', { name: 'Handover', exact: true }).click();
     await expect(gallery.getByRole('heading', { name: 'Ready for A003' })).toBeVisible();
     await capture(page, 'run-study-handover', 'tablet', '#run-study');
+    // In a browser the tablet app is absent, so no update offer appears.
+    await expect(gallery.getByRole('group', { name: 'Tablet app update' })).toHaveCount(0);
+    await gallery.getByRole('tab', { name: 'Handover, app update', exact: true }).click();
+    const update = gallery.getByRole('group', { name: 'Tablet app update' });
+    await expect(update).toContainText('tablet app 0.1.3 is available');
+    await expect(update.getByRole('button', { name: 'Update tablet app' })).toBeEnabled();
+    await axeScan(page, '#run-study');
+    await capture(page, 'run-study-handover-update', 'tablet', '#run-study');
     await gallery.getByRole('tab', { name: 'Staff panel', exact: true }).click();
     await expect(gallery.getByRole('region', { name: 'Staff status' })).toBeVisible();
     await gallery.getByRole('tab', { name: 'Add step menu', exact: true }).click();

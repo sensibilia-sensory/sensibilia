@@ -3,10 +3,14 @@ import type { components } from '../api-schema';
 import { Button, Tabs } from '../ui';
 import {
   BoothCanvas,
+  FloorViewOptions,
   RunTable,
   ServingRequest,
+  appText,
   type BoardRoom,
   type BoardTablet,
+  type FloorView,
+  type ListView,
   type Row,
 } from '../researcher/RunStudy';
 import { StepMenuContent } from '../researcher/StepMenu';
@@ -58,16 +62,50 @@ const tablet = (
   stage,
   detail,
   next_samples: [],
+  current_samples: [],
+  upcoming_samples: [],
+  app_version: n === 1 ? '0.1.2' : '0.1.3',
+  app_update_available: n === 1,
+});
+const slot = (n: number, code: string, label: string) => ({
+  sample_id: 's' + n,
+  code,
+  label: 'Product ' + label,
+  position: 1,
 });
 const tablets: BoardTablet[] = [
-  tablet(1, '1', 'serving', 'Needs samples 731 204'),
   {
-    ...tablet(2, '2', 'in_progress', 'Test in progress, step 4 of 12 · next sample 482'),
-    next_samples: [{ sample_id: 's3', code: '482', label: 'Product C', position: 2 }],
+    ...tablet(1, '1', 'serving', 'Needs samples 731 204'),
+    upcoming_samples: [[slot(3, '482', 'C')], [slot(4, '519', 'D')]],
+  },
+  {
+    ...tablet(
+      2,
+      '2',
+      'in_progress',
+      'Test in progress, step 9 of 26 (sample 2 of 5) · next sample 482',
+    ),
+    next_samples: [slot(3, '482', 'C')],
+    step_position: 9,
+    step_total: 26,
+    step_title: 'Liking',
+    loop_position: 2,
+    loop_total: 5,
+    current_samples: [slot(1, '731', 'A')],
+    upcoming_samples: [
+      [slot(3, '482', 'C')],
+      [slot(4, '519', 'D')],
+      [slot(5, '640', 'E')],
+      [slot(2, '204', 'B')],
+    ],
   },
   tablet(3, '3', 'completed', 'Has completed the test'),
   tablet(4, '4', 'waiting', 'Waiting for assignment'),
-  tablet(5, '5', 'offline', 'No contact for 3 min'),
+  {
+    ...tablet(5, '5', 'offline', 'No contact for 3 min'),
+    current_samples: [slot(4, '519', 'D')],
+    upcoming_samples: [[slot(2, '204', 'B')]],
+  },
   tablet(6, null, 'waiting', 'Waiting for assignment'),
 ];
 
@@ -93,6 +131,9 @@ const withRequest = (state: string, revision: number): BoardTablet => ({
     preparation: 'One portion each, room temperature',
   },
 });
+// The serving tablet on the floor carries its open request, as the board reports it.
+tablets[0] = withRequest('ready', 1);
+
 function RequestDemo() {
   const [state, setState] = useState('ready');
   return (
@@ -112,33 +153,75 @@ function RequestDemo() {
   );
 }
 
-const canvas = (populated: boolean) => (
-  <div className="ui-board">
-    <BoothCanvas
-      room={populated ? room : undefined}
-      tablets={populated ? tablets : []}
-      selectedId={populated ? 'booth-2' : undefined}
-      onSelect={() => {}}
-      onMove={() => {}}
-      onDropTablet={() => {}}
-    />
-  </div>
-);
+function Floor({ populated, table = false }: { populated: boolean; table?: boolean }) {
+  const [view, setView] = useState<FloorView>({ underBooths: true, table, ahead: 3 });
+  const [labels, setLabels] = useState<Record<string, string>>({});
+  const shown = populated
+    ? { ...room, booths: room.booths.map((b) => ({ ...b, label: labels[b.id] ?? b.label })) }
+    : undefined;
+  return (
+    <div className="ui-stack">
+      <FloorViewOptions view={view} onChange={(next) => setView((v) => ({ ...v, ...next }))} />
+      <div className="ui-board">
+        <BoothCanvas
+          room={shown}
+          tablets={populated ? tablets : []}
+          selectedId={populated ? 'booth-2' : undefined}
+          onSelect={() => {}}
+          onMove={() => {}}
+          onDropTablet={() => {}}
+          onRename={(id, label) => setLabels((l) => ({ ...l, [id]: label }))}
+          view={view}
+        />
+      </div>
+    </div>
+  );
+}
+const canvas = (populated: boolean) => <Floor populated={populated} />;
 
 const rows: Row[] = [
   ...tablets
     .filter((t) => t.booth_id)
     .map((t) => ({
       id: t.terminal_id,
+      boothId: t.booth_id!,
       booth: 'Booth ' + t.booth_id!.replace('booth-', ''),
       tablet: t.name,
       study: t.study_version_id ? 'Oat drink liking 2026 · v2' : '—',
       assessor: t.assessor_code ?? '—',
       now: t.detail,
+      app: appText(t, '0.1.3'),
       board: t,
     })),
-  { id: 'empty-booth', booth: 'Booth 7', tablet: 'No tablet', study: '—', assessor: '—', now: '—' },
+  {
+    id: 'empty-booth',
+    boothId: 'booth-7',
+    booth: 'Booth 7',
+    tablet: 'No tablet',
+    study: '—',
+    assessor: '—',
+    now: '—',
+  },
 ];
+
+/** The List tab with its column menu and in-place booth names, as on the page. */
+function ListDemo() {
+  const [view, setView] = useState<ListView>({ hidden: ['now'], ahead: 3, labels: true });
+  const [names, setNames] = useState<Record<string, string>>({});
+  return (
+    <RunTable
+      rows={rows.map((r) => ({ ...r, booth: (r.boothId && names[r.boothId]) || r.booth }))}
+      blocked={() => undefined}
+      startLabel={startLabel}
+      onStart={() => {}}
+      onEnd={() => {}}
+      onServe={() => {}}
+      onRename={(id, name) => setNames((n) => ({ ...n, [id]: name }))}
+      view={view}
+      onViewChange={(next) => setView((v) => ({ ...v, ...next }))}
+    />
+  );
+}
 const startLabel = (t: BoardTablet) => (t.session_id ? 'Next assessor' : 'Start first assessment');
 
 const methods = [
@@ -156,21 +239,13 @@ export function RunStudyGallery() {
         onChange={setTab}
         tabs={[
           { id: 'stages', label: 'Every stage', content: canvas(true) },
+          { id: 'table', label: 'Sample table', content: <Floor populated table /> },
           { id: 'empty', label: 'No booths', content: canvas(false) },
           { id: 'request', label: 'Serving request', content: <RequestDemo /> },
           {
             id: 'list',
             label: 'List',
-            content: (
-              <RunTable
-                rows={rows}
-                blocked={() => undefined}
-                startLabel={startLabel}
-                onStart={() => {}}
-                onEnd={() => {}}
-                onServe={() => {}}
-              />
-            ),
+            content: <ListDemo />,
           },
           {
             id: 'list-empty',
@@ -209,6 +284,23 @@ export function RunStudyGallery() {
                   language: 'en',
                 }}
                 onConfirm={() => {}}
+              />
+            ),
+          },
+          {
+            id: 'handover-update',
+            label: 'Handover, app update',
+            content: (
+              <HandoverReady
+                summary={{
+                  assessor: 'A004',
+                  study: 'Oat drink liking 2026',
+                  version: '2 (released)',
+                  booth: 'Booth 3',
+                  language: 'en',
+                }}
+                onConfirm={() => {}}
+                offeredUpdate="0.1.3"
               />
             ),
           },

@@ -444,6 +444,26 @@ textarea.ui-control {
   position: relative;
   height: var(--h-row);
 }
+/* The draggable right edge of a resizable column's header. */
+.ui-col-resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--sp-2);
+  cursor: col-resize;
+  touch-action: none;
+}
+.ui-col-resize:hover,
+.ui-col-resize:focus-visible {
+  border-right: var(--focus-width) solid var(--c-accent);
+  outline: none;
+}
+/* A booth name in the Run study list, renamed by double-click like on the floor. */
+.ui-board-list-name {
+  display: block;
+  cursor: text;
+}
 .ui-data-table td::after {
   content: '';
   position: absolute;
@@ -1067,6 +1087,14 @@ td .ui-button--quiet {
   background: var(--c-accent);
   color: var(--c-accent-contrast);
   font-size: var(--fs-booth);
+  /* Long booth names are cut short here; the full name is in the side panel. */
+  padding: 0 var(--sp-1);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ui-board-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ui-board-booth--selected .ui-board-square {
   outline: var(--focus-width) solid var(--c-text);
@@ -1112,7 +1140,9 @@ td .ui-button--quiet {
 /* Draggable list of what each running assessor needs next; sits on the floor like a booth. */
 .ui-board-next {
   position: absolute;
-  max-width: var(--w-board-panel);
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
   padding: var(--sp-2);
   border: var(--border);
   background: var(--c-panel);
@@ -1147,6 +1177,43 @@ td .ui-button--quiet {
 }
 .ui-board-next small {
   color: var(--c-muted);
+}
+/* The next upcoming step stands out from the ones after it. */
+.ui-board-next th.ui-board-next-now,
+.ui-board-next td.ui-board-next-now {
+  background: var(--c-selected);
+  color: var(--c-text);
+  font-weight: 600;
+}
+.ui-board-next td.ui-board-next-now small {
+  color: var(--c-text);
+  font-weight: normal;
+}
+/* The same highlight for the next sample column of the Run study list. */
+.ui-data-table td:has(.ui-board-next-now) {
+  background: var(--c-selected);
+  color: var(--c-text);
+  font-weight: 600;
+}
+/* Next sample line under each booth, and the in-place rename field. */
+.ui-board-booth-next {
+  display: block;
+  font-weight: 600;
+}
+.ui-board-rename {
+  width: var(--w-booth);
+  cursor: auto;
+}
+/* Floor view toggles, one line above the floor. */
+.ui-board-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.ui-board-options .ui-field {
+  grid-template-columns: auto auto;
+  align-items: center;
 }
 @media (max-width: 1100px) {
   .ui-board {

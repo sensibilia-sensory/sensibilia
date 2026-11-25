@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -24,24 +25,45 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Full-screen assessor. The page is the PWA served by the laboratory server; this shell only adds
  * the saved server address, kiosk (lock task) mode and a press-and-hold staff corner.
  */
 public class MainActivity extends Activity {
     private static final long HOLD_MS = 900;
+    /** A kiosk tablet never leaves the foreground, so the update check also repeats. */
+    private static final long CHECK_EVERY_MS = 10 * 60 * 1000;
 
     private ServerPrefs prefs;
     private WebView web;
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private boolean kioskStarted;
+    private String origin;
+    private long installedCode;
+    private String installedName;
+    /** A newer app the server offers, or null. */
+    private volatile Updater.Offer offer;
+    /** Host of the page now shown; the bridge answers only pages from the saved server. */
+    private volatile String pageHost;
+    private boolean updating;
+    private final Runnable periodicCheck = new Runnable() {
+        @Override
+        public void run() {
+            checkForUpdate(null);
+            handler.postDelayed(this, CHECK_EVERY_MS);
+        }
+    };
 
     @SuppressLint({"SetJavaScriptEnabled", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         prefs = new ServerPrefs(this);
-        String origin = prefs.origin();
+        origin = prefs.origin();
         if (origin == null) {
             startActivity(new Intent(this, SetupActivity.class));
             finish();
@@ -65,6 +87,13 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setMediaPlaybackRequiresUserGesture(false);
+        // The server shows staff which tablets run an older app.
+        android.content.pm.PackageInfo info = Updater.installed(this);
+        installedCode = info.getLongVersionCode();
+        installedName = info.versionName;
+        settings.setUserAgentString(settings.getUserAgentString()
+                + " SensibiliaTablet/" + installedCode + "/" + installedName);
+        web.addJavascriptInterface(new Bridge(), "SensibiliaTablet");
         CookieManager.getInstance().setAcceptCookie(true);
         web.setWebViewClient(new Client(Uri.parse(origin).getHost()));
         frame.addView(web, new FrameLayout.LayoutParams(
@@ -115,6 +144,120 @@ public class MainActivity extends Activity {
                 // Not provisioned as device owner and pinning was declined: run unlocked.
             }
         }
+        if (web != null) {
+            handler.removeCallbacks(periodicCheck);
+            handler.post(periodicCheck);
+            String problem = UpdateReceiver.takeProblem(this);
+            if (problem != null) {
+                updating = false;
+                say("Tablet app not updated", problem);
+            }
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler.removeCallbacks(periodicCheck);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        worker.shutdownNow();
+    }
+
+    /** Asks the server for a newer app; quiet when there is none or the server is unreachable. */
+    private void checkForUpdate(Runnable then) {
+        if (origin == null) return;
+        worker.execute(() -> {
+            try {
+                offer = Updater.check(origin, installedCode);
+            } catch (Exception e) {
+                // Unreachable or no tablet app on this server: keep what we knew, say nothing.
+            }
+            if (then != null) runOnUiThread(then);
+        });
+    }
+
+    /** Downloads, checks and installs the offered app. Staff start this; it never runs by itself. */
+    private void startUpdate() {
+        Updater.Offer wanted = offer;
+        if (wanted == null || updating) return;
+        updating = true;
+        AlertDialog progress = new AlertDialog.Builder(this)
+                .setTitle("Updating the tablet app")
+                .setMessage("Downloading version " + wanted.name + ". The tablet restarts by itself "
+                        + "and stays set up. Answers stored on this tablet are kept.")
+                .setCancelable(false)
+                .show();
+        worker.execute(() -> {
+            try {
+                java.io.File apk = Updater.download(this, origin, wanted);
+                runOnUiThread(() -> {
+                    try {
+                        if (!Updater.silent(this)) {
+                            // Android's confirmation cannot appear in kiosk mode; it resumes after.
+                            try {
+                                stopLockTask();
+                            } catch (Exception ignored) {
+                                // Not in lock task mode.
+                            }
+                            kioskStarted = false;
+                        }
+                        Updater.install(this, apk);
+                    } catch (Exception e) {
+                        progress.dismiss();
+                        updating = false;
+                        say("Tablet app not updated", "The update could not start: " + e.getMessage());
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progress.dismiss();
+                    updating = false;
+                    say("Tablet app not updated", "Could not download the update: "
+                            + e.getMessage() + "\n\nThe tablet keeps working with the current app.");
+                });
+            }
+        });
+    }
+
+    private void say(String title, String message) {
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("Close", null)
+                .show();
+    }
+
+    /**
+     * What the tablet web app may ask the shell. Answers only pages from the saved
+     * server; every method runs on a WebView thread, so UI work is posted to the main thread.
+     */
+    private final class Bridge {
+        private boolean trusted() {
+            return origin != null && Uri.parse(origin).getHost().equals(pageHost);
+        }
+
+        /** The newer version the server offers, or "" when there is none. */
+        @JavascriptInterface
+        public String offeredVersion() {
+            Updater.Offer current = offer;
+            return trusted() && current != null ? current.name : "";
+        }
+
+        /** This app's version. */
+        @JavascriptInterface
+        public String installedVersion() {
+            return trusted() ? installedName : "";
+        }
+
+        /** Starts the update staff asked for. */
+        @JavascriptInterface
+        public void installUpdate() {
+            if (trusted()) runOnUiThread(MainActivity.this::startUpdate);
+        }
     }
 
     @Override
@@ -131,11 +274,36 @@ public class MainActivity extends Activity {
     }
 
     private void staffMenu() {
-        String[] items = {"Reload", "Change server", "Leave kiosk mode", "Certificate", "Close"};
+        Updater.Offer current = offer;
+        String update = current != null
+                ? "Update tablet app to " + current.name
+                : "Check for app update (this app: " + installedName + ")";
+        String[] items = {"Reload", "Change server", "Leave kiosk mode", "Certificate", update, "Close"};
         new AlertDialog.Builder(this)
                 .setTitle("Staff")
                 .setItems(items, (dialog, which) -> {
-                    if (which == 0) {
+                    if (which == 4) {
+                        if (current != null) {
+                            startUpdate();
+                        } else {
+                            checkForUpdate(() -> {
+                                Updater.Offer found = offer;
+                                if (found != null) {
+                                    new AlertDialog.Builder(this)
+                                            .setTitle("Update available")
+                                            .setMessage("The server has tablet app " + found.name
+                                                    + "; this tablet has " + installedName + ".")
+                                            .setPositiveButton("Update now", (d, w) -> startUpdate())
+                                            .setNegativeButton("Later", null)
+                                            .show();
+                                } else {
+                                    say("No update", "This tablet has the newest app the server "
+                                            + "offers (" + installedName + "), or the server could "
+                                            + "not be reached.");
+                                }
+                            });
+                        }
+                    } else if (which == 0) {
                         web.reload();
                     } else if (which == 1) {
                         prefs.clear();
@@ -175,6 +343,12 @@ public class MainActivity extends Activity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             return !host.equals(request.getUrl().getHost());
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+            // Error pages are loaded without a URL, so they never count as the server.
+            pageHost = url == null ? null : Uri.parse(url).getHost();
         }
 
         @Override

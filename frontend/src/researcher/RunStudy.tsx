@@ -10,7 +10,7 @@ import {
 } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { components } from '../api-schema';
-import { Button, ConfirmButton, DataTable, Field, SidePanel, Tabs, Toolbar } from '../ui';
+import { Button, ConfirmButton, DataTable, Field, Popover, SidePanel, Tabs, Toolbar } from '../ui';
 import { navigate } from '../router';
 import { servingStateLabel } from '../shared/lexicon';
 import { ApiError, Client } from './client';
@@ -73,6 +73,7 @@ function Marker({ stage }: { stage: BoardTablet['stage'] | 'empty' }) {
 }
 
 const NEXT_BOX_KEY = 'sensibilia.run.next-samples-box';
+const FLOOR_VIEW_KEY = 'sensibilia.run.floor-view';
 /** Where this viewer left the Next samples box; a per-browser convenience, safe to lose. */
 function savedNextBox() {
   try {
@@ -84,32 +85,175 @@ function savedNextBox() {
   return { x: 1, y: 0 };
 }
 
-/** Codes (and private labels, staff only) of what a busy tablet needs now or next. */
-function upcoming(t: BoardTablet) {
-  if (t.serving) return { slots: t.serving.slots, now: true };
-  return { slots: t.next_samples, now: false };
+const NAMES_KEY = 'sensibilia.run.booth-names';
+/**
+ * Booth names this viewer chose. They change only what this browser shows: the room layout,
+ * assignments and records keep the booth's own label.
+ */
+export function useBoothNames() {
+  const [names, setNames] = useState<Record<string, string>>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(NAMES_KEY) ?? '') as unknown;
+      return saved && typeof saved === 'object' ? (saved as Record<string, string>) : {};
+    } catch {
+      return {};
+    }
+  });
+  /** An empty name, or the booth's own label, goes back to showing the booth's own label. */
+  const rename = (id: string, name: string) =>
+    setNames((n) => {
+      const next = { ...n };
+      if (name) next[id] = name;
+      else delete next[id];
+      try {
+        localStorage.setItem(NAMES_KEY, JSON.stringify(next));
+      } catch {
+        /* not remembered; it still shows until reload */
+      }
+      return next;
+    });
+  return [names, rename] as const;
+}
+/** The room as this viewer sees it: each booth under the name chosen here, if any. */
+export const withNames = (room: BoardRoom, names: Record<string, string>): BoardRoom => ({
+  ...room,
+  booths: room.booths.map((b) => ({ ...b, label: names[b.id] || b.label })),
+});
+
+/** What this viewer shows on the floor: the next sample under each booth, the sample table. */
+export type FloorView = { underBooths: boolean; table: boolean; ahead: number };
+const FLOOR_VIEW: FloorView = { underBooths: true, table: false, ahead: 3 };
+/** The longest look ahead the table offers; the board reports more than this. */
+export const MAX_AHEAD = 5;
+
+/** This viewer's floor view settings; a per-browser convenience, safe to lose. */
+export function useFloorView() {
+  const [view, setView] = useState<FloorView>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(FLOOR_VIEW_KEY) ?? '') as Partial<FloorView>;
+      return {
+        underBooths:
+          typeof saved.underBooths === 'boolean' ? saved.underBooths : FLOOR_VIEW.underBooths,
+        table: typeof saved.table === 'boolean' ? saved.table : FLOOR_VIEW.table,
+        ahead:
+          typeof saved.ahead === 'number' ? clamp(saved.ahead, 1, MAX_AHEAD) : FLOOR_VIEW.ahead,
+      };
+    } catch {
+      return FLOOR_VIEW;
+    }
+  });
+  const change = (next: Partial<FloorView>) =>
+    setView((v) => {
+      const merged = { ...v, ...next };
+      try {
+        localStorage.setItem(FLOOR_VIEW_KEY, JSON.stringify(merged));
+      } catch {
+        /* not remembered; it still works */
+      }
+      return merged;
+    });
+  return [view, change] as const;
 }
 
+/** The toggles above the floor: next sample under booths, the sample table and its reach. */
+export function FloorViewOptions({
+  view,
+  onChange,
+}: {
+  view: FloorView;
+  onChange: (next: Partial<FloorView>) => void;
+}) {
+  return (
+    <div className="ui-board-options" role="group" aria-label="Floor view">
+      <Field
+        kind="toggle"
+        label="Next sample under booths"
+        checked={view.underBooths}
+        onChange={(e) => onChange({ underBooths: e.target.checked })}
+      />
+      <Field
+        kind="toggle"
+        label="Sample table"
+        checked={view.table}
+        onChange={(e) => onChange({ table: e.target.checked })}
+      />
+      {view.table && (
+        <Field
+          kind="select"
+          label="Upcoming samples in the table"
+          compact
+          value={String(view.ahead)}
+          onChange={(e) => onChange({ ahead: Number(e.target.value) })}
+          options={Array.from({ length: MAX_AHEAD }, (_, i) => ({
+            value: String(i + 1),
+            label: i + 1 + ' upcoming',
+          }))}
+        />
+      )}
+    </div>
+  );
+}
+
+type Slot = BoardTablet['next_samples'][number];
+/** A tablet that is running an assessment, so it has samples now or ahead. */
+const RUNNING: BoardTablet['stage'][] = ['in_progress', 'serving', 'offline'];
+
 /**
- * A box staff can drag anywhere on the floor, listing each running assessor's next sample so it
- * can be prepared before the tablet asks for it.
+ * The serving steps still ahead of a running tablet, nearest first. While the tablet asks for
+ * samples, that open request is the nearest step and is needed now.
+ */
+export function upcoming(t: BoardTablet) {
+  const ahead = t.upcoming_samples ?? [];
+  if (t.serving) return { steps: [t.serving.slots, ...ahead], now: true };
+  return { steps: ahead, now: false };
+}
+
+/** The stage sentence without the "next sample" part, when that is shown on its own line. */
+const withoutNext = (detail: string) => detail.replace(/ · next samples? .*$/, '');
+
+function Slots({ slots, labels = true }: { slots: Slot[] | undefined; labels?: boolean }) {
+  if (!slots?.length) return <>—</>;
+  return (
+    <>
+      {slots.map((s) => (
+        <span key={s.sample_id + ':' + s.position} className="ui-board-next-slot">
+          <span className="ui-sample-code">{s.code}</span>
+          {labels && ' ' + s.label}
+        </span>
+      ))}
+    </>
+  );
+}
+const slotText = (slots: Slot[] | undefined) => (slots ?? []).map((s) => s.code).join(' ');
+
+const AHEAD_HEADER = ['Next', '2nd next', '3rd next', '4th next', '5th next'];
+
+/**
+ * A box staff can drag anywhere on the floor, listing for each running assessor the sample they
+ * are assessing and the samples their next serving steps ask for, so those can be prepared before
+ * the tablet asks. The next one is highlighted.
  */
 export function NextSamplesBox({
   tablets,
+  booths,
+  ahead,
   canvas,
 }: {
   tablets: BoardTablet[];
+  booths: BoardBooth[];
+  ahead: number;
   canvas: RefObject<HTMLDivElement | null>;
 }) {
   const [at, setAt] = useState(savedNextBox);
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ dx: number; dy: number } | undefined>(undefined);
   const rows = tablets
-    .filter((t) => t.assessor_code && ['in_progress', 'serving', 'offline'].includes(t.stage))
+    .filter((t) => t.assessor_code && RUNNING.includes(t.stage))
     .sort((a, b) =>
       (a.assessor_code ?? '').localeCompare(b.assessor_code ?? '', undefined, { numeric: true }),
     );
   if (!rows.length) return null;
+  const columns = Array.from({ length: clamp(ahead, 1, MAX_AHEAD) }, (_, i) => i);
   return (
     <div
       ref={box}
@@ -154,30 +298,98 @@ export function NextSamplesBox({
         <thead>
           <tr>
             <th scope="col">Assessor</th>
-            <th scope="col">Next sample</th>
+            <th scope="col">Booth</th>
+            <th scope="col">Assessing</th>
+            {columns.map((i) => (
+              <th key={i} scope="col" className={i === 0 ? 'ui-board-next-now' : undefined}>
+                {AHEAD_HEADER[i]}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {rows.map((t) => {
-            const { slots, now } = upcoming(t);
+            const { steps, now } = upcoming(t);
             return (
               <tr key={t.terminal_id}>
                 <td>{t.assessor_code}</td>
+                <td>{booths.find((b) => b.id === t.booth_id)?.label ?? '—'}</td>
                 <td>
-                  {slots.length
-                    ? slots.map((s) => (
-                        <span key={s.sample_id + ':' + s.position} className="ui-board-next-slot">
-                          <span className="ui-sample-code">{s.code}</span> {s.label}
-                        </span>
-                      ))
-                    : '—'}
-                  {now && <small> needed now</small>}
+                  <Slots slots={t.current_samples} />
                 </td>
+                {columns.map((i) => (
+                  <td key={i} className={i === 0 ? 'ui-board-next-now' : undefined}>
+                    <Slots slots={steps[i]} />
+                    {i === 0 && now && <small> needed now</small>}
+                  </td>
+                ))}
               </tr>
             );
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/** The booth name typed in place on the floor; Enter or leaving the field saves, Escape cancels. */
+export function BoothRename({
+  booth,
+  taken,
+  onSave,
+  onDone,
+}: {
+  booth: BoardBooth;
+  taken: (label: string) => boolean;
+  onSave: (label: string) => void;
+  onDone: () => void;
+}) {
+  const [value, setValue] = useState(booth.label);
+  const wrap = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const input = wrap.current?.querySelector('input');
+    input?.focus();
+    input?.select();
+  }, []);
+  // Closing removes the field, which can fire one more blur; act on the first ending only.
+  const ended = useRef(false);
+  const name = value.trim();
+  const clash = !!name && name !== booth.label && taken(name);
+  const close = (save: boolean) => {
+    if (ended.current) return;
+    ended.current = true;
+    if (save && !clash && name !== booth.label) onSave(name);
+    onDone();
+  };
+  return (
+    <div
+      ref={wrap}
+      className="ui-board-rename"
+      onPointerDown={(e) => e.stopPropagation()}
+      onPointerUp={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        e.stopPropagation();
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          close(true);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          close(false);
+        }
+      }}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close(true);
+      }}
+    >
+      <Field
+        label="Booth name"
+        compact
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        hint="Shown on this computer only. Leave empty for the booth's own name."
+        error={clash ? 'Another booth already has this name.' : undefined}
+      />
     </div>
   );
 }
@@ -190,6 +402,8 @@ export function BoothCanvas({
   onSelect,
   onMove,
   onDropTablet,
+  onRename,
+  view = FLOOR_VIEW,
 }: {
   room?: BoardRoom;
   tablets: BoardTablet[];
@@ -197,7 +411,11 @@ export function BoothCanvas({
   onSelect: (boothId: string) => void;
   onMove: (boothId: string, x: number, y: number) => void;
   onDropTablet: (terminalId: string, boothId: string | null) => void;
+  /** Rename a booth in place (double-click or F2); without it booths are renamed elsewhere. */
+  onRename?: (boothId: string, label: string) => void;
+  view?: FloorView;
 }) {
+  const [renaming, setRenaming] = useState('');
   const canvas = useRef<HTMLDivElement>(null);
   const drag = useRef<{ id: string; sx: number; sy: number; moved: boolean } | undefined>(
     undefined,
@@ -269,6 +487,9 @@ export function BoothCanvas({
           const stage = tablet?.stage ?? 'empty';
           const detail = tablet ? tablet.detail : STAGE_LABEL.empty;
           const at = live?.id === b.id ? live : boothPosition(b, room!);
+          const running = tablet && RUNNING.includes(tablet.stage) ? upcoming(tablet) : undefined;
+          const next = running?.steps[0]?.length ? running.steps[0] : undefined;
+          const now = running?.now;
           return (
             <div
               key={b.id}
@@ -285,10 +506,14 @@ export function BoothCanvas({
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   onSelect(b.id);
+                } else if (e.key === 'F2' && onRename) {
+                  e.preventDefault();
+                  setRenaming(b.id);
                 }
               }}
+              onDoubleClick={() => onRename && setRenaming(b.id)}
               onPointerDown={(e) => {
-                if (e.button !== 0) return;
+                if (e.button !== 0 || renaming === b.id) return;
                 e.currentTarget.setPointerCapture(e.pointerId);
                 drag.current = { id: b.id, sx: e.clientX, sy: e.clientY, moved: false };
               }}
@@ -312,16 +537,37 @@ export function BoothCanvas({
             >
               <div className="ui-board-square">
                 <Marker stage={stage} />
-                {b.label}
+                <span className="ui-board-label">{b.label}</span>
               </div>
+              {renaming === b.id && onRename && (
+                <BoothRename
+                  booth={b}
+                  taken={(label) => booths.some((o) => o.id !== b.id && o.label === label)}
+                  onSave={(label) => onRename(b.id, label)}
+                  onDone={() => setRenaming('')}
+                />
+              )}
               <div className="ui-board-caption">
                 {tablet && <small>{tablet.name}</small>}
-                {detail}
+                {view.underBooths ? withoutNext(detail) : detail}
+                {view.underBooths && next && (
+                  <span className="ui-board-booth-next">
+                    {now ? 'Needed now: ' : 'Next: '}
+                    <Slots slots={next} />
+                  </span>
+                )}
               </div>
             </div>
           );
         })}
-        <NextSamplesBox tablets={tablets} canvas={canvas} />
+        {view.table && (
+          <NextSamplesBox
+            tablets={tablets}
+            booths={room?.booths ?? []}
+            ahead={view.ahead}
+            canvas={canvas}
+          />
+        )}
       </div>
     </>
   );
@@ -413,21 +659,238 @@ export function ServingRequest({
 
 export interface Row {
   id: string;
+  /** The booth this row is about, when it has one, so it can be renamed from the list. */
+  boothId?: string;
   booth: string;
   tablet: string;
   study: string;
   assessor: string;
   now: string;
+  /** Tablet app version, with "update available" when the server has a newer one. */
+  app?: string;
   board?: BoardTablet;
 }
 
-const columns: ColumnDef<Row>[] = [
-  { accessorKey: 'booth', header: 'Booth' },
-  { accessorKey: 'tablet', header: 'Tablet' },
-  { accessorKey: 'study', header: 'Study' },
-  { accessorKey: 'assessor', header: 'Assessor' },
-  { accessorKey: 'now', header: 'Now' },
-];
+/**
+ * The tablet app version, as "0.1.2 → 0.1.3" when the server offers a newer one; undefined when
+ * the tablet has not said (a browser).
+ */
+export function appText(t: BoardTablet, offered?: string | null) {
+  if (!t.app_version) return undefined;
+  return t.app_version + (t.app_update_available && offered ? ' → ' + offered : '');
+}
+
+/** The List tab's columns staff can show or hide, in table order. Booth always shows. */
+export const LIST_COLUMNS = [
+  { id: 'tablet', label: 'Tablet' },
+  { id: 'study', label: 'Study' },
+  { id: 'assessor', label: 'Assessor' },
+  { id: 'status', label: 'Status' },
+  { id: 'step', label: 'Step' },
+  { id: 'title', label: 'Current step' },
+  { id: 'loop', label: 'Loop sample' },
+  { id: 'now', label: 'Now' },
+  { id: 'assessing', label: 'Assessing' },
+  { id: 'upcoming', label: 'Upcoming samples' },
+  { id: 'app', label: 'Tablet app' },
+] as const;
+type ListColumn = (typeof LIST_COLUMNS)[number]['id'];
+/** What this viewer shows in the List tab: hidden columns, how far ahead, product labels. */
+export type ListView = { hidden: ListColumn[]; ahead: number; labels: boolean };
+const LIST_VIEW: ListView = { hidden: ['now'], ahead: 3, labels: true };
+const LIST_VIEW_KEY = 'sensibilia.run.list-view';
+
+/** This viewer's List tab settings; a per-browser convenience, safe to lose. */
+export function useListView() {
+  const [view, setView] = useState<ListView>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LIST_VIEW_KEY) ?? '') as Partial<ListView>;
+      return {
+        hidden: Array.isArray(saved.hidden) ? saved.hidden : LIST_VIEW.hidden,
+        ahead: typeof saved.ahead === 'number' ? clamp(saved.ahead, 1, MAX_AHEAD) : LIST_VIEW.ahead,
+        labels: typeof saved.labels === 'boolean' ? saved.labels : LIST_VIEW.labels,
+      };
+    } catch {
+      return LIST_VIEW;
+    }
+  });
+  const change = (next: Partial<ListView>) =>
+    setView((v) => {
+      const merged = { ...v, ...next };
+      try {
+        localStorage.setItem(LIST_VIEW_KEY, JSON.stringify(merged));
+      } catch {
+        /* not remembered; it still works */
+      }
+      return merged;
+    });
+  return [view, change] as const;
+}
+
+/** The "Columns" menu above the list: which columns show, how many samples ahead, labels. */
+export function ListViewOptions({
+  view,
+  onChange,
+}: {
+  view: ListView;
+  onChange: (next: Partial<ListView>) => void;
+}) {
+  return (
+    <Popover label="Columns" align="right">
+      {LIST_COLUMNS.map((c) => (
+        <Field
+          key={c.id}
+          kind="checkbox"
+          label={c.label}
+          checked={!view.hidden.includes(c.id)}
+          onChange={(e) =>
+            onChange({
+              hidden: e.target.checked
+                ? view.hidden.filter((h) => h !== c.id)
+                : [...view.hidden, c.id],
+            })
+          }
+        />
+      ))}
+      <Field
+        kind="select"
+        label="Upcoming samples"
+        value={String(view.ahead)}
+        onChange={(e) => onChange({ ahead: Number(e.target.value) })}
+        options={Array.from({ length: MAX_AHEAD }, (_, i) => ({
+          value: String(i + 1),
+          label: String(i + 1),
+        }))}
+      />
+      <Field
+        kind="checkbox"
+        label="Product labels"
+        hint="Show the private product label next to each sample code."
+        checked={view.labels}
+        onChange={(e) => onChange({ labels: e.target.checked })}
+      />
+    </Popover>
+  );
+}
+
+const stepText = (t?: BoardTablet) =>
+  t?.step_position ? t.step_position + ' of ' + t.step_total : '—';
+const loopText = (t?: BoardTablet) =>
+  t?.loop_position ? t.loop_position + ' of ' + t.loop_total : '—';
+const live = (t?: BoardTablet) => (t && RUNNING.includes(t.stage) ? t : undefined);
+
+/** Every column the List tab can show; `view` picks which. */
+function listColumns(
+  view: ListView,
+  showApp: boolean,
+  rename: { id: string; start: (id: string) => void; end: () => void } | undefined,
+  onRename: ((boothId: string, name: string) => void) | undefined,
+  taken: (boothId: string, name: string) => boolean,
+): ColumnDef<Row>[] {
+  const shown = (id: ListColumn) => !view.hidden.includes(id);
+  const columns: ColumnDef<Row>[] = [
+    {
+      id: 'booth',
+      accessorKey: 'booth',
+      header: 'Booth',
+      cell: ({ row }) => {
+        const r = row.original;
+        if (r.boothId && onRename && rename?.id === r.boothId)
+          return (
+            <BoothRename
+              booth={{ id: r.boothId, label: r.booth } as BoardBooth}
+              taken={(name) => taken(r.boothId!, name)}
+              onSave={(name) => onRename(r.boothId!, name)}
+              onDone={rename.end}
+            />
+          );
+        if (!r.boothId || !onRename || !rename) return r.booth;
+        const start = () => rename.start(r.boothId!);
+        // Like the floor: double-click the name (or press F2 or Enter on it) to rename it here.
+        return (
+          <span
+            className="ui-board-list-name"
+            role="button"
+            tabIndex={0}
+            aria-label={r.booth + ', rename'}
+            title="Double-click or press F2 to rename (shown on this computer only)"
+            onDoubleClick={start}
+            onKeyDown={(e) => {
+              if (e.key === 'F2' || e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                start();
+              }
+            }}
+          >
+            {r.booth}
+          </span>
+        );
+      },
+    },
+  ];
+  if (shown('tablet')) columns.push({ accessorKey: 'tablet', header: 'Tablet' });
+  if (shown('study')) columns.push({ accessorKey: 'study', header: 'Study' });
+  if (shown('assessor')) columns.push({ accessorKey: 'assessor', header: 'Assessor' });
+  if (shown('status'))
+    columns.push({
+      id: 'status',
+      header: 'Status',
+      accessorFn: (r) => STAGE_LABEL[r.board?.stage ?? 'empty'],
+    });
+  if (shown('step'))
+    columns.push({
+      id: 'step',
+      header: 'Step',
+      accessorFn: (r) => live(r.board)?.step_position ?? 0,
+      cell: ({ row }) => stepText(live(row.original.board)),
+    });
+  if (shown('title'))
+    columns.push({
+      id: 'title',
+      header: 'Current step',
+      accessorFn: (r) => live(r.board)?.step_title ?? '—',
+    });
+  if (shown('loop'))
+    columns.push({
+      id: 'loop',
+      header: 'Loop sample',
+      accessorFn: (r) => loopText(live(r.board)),
+    });
+  if (shown('now')) columns.push({ accessorKey: 'now', header: 'Now' });
+  if (shown('assessing'))
+    columns.push({
+      id: 'assessing',
+      header: 'Assessing',
+      accessorFn: (r) => slotText(live(r.board)?.current_samples),
+      cell: ({ row }) => (
+        <Slots slots={live(row.original.board)?.current_samples} labels={view.labels} />
+      ),
+    });
+  if (shown('upcoming'))
+    for (let i = 0; i < clamp(view.ahead, 1, MAX_AHEAD); i++) {
+      const steps = (r: Row) => {
+        const t = live(r.board);
+        return t ? upcoming(t) : undefined;
+      };
+      columns.push({
+        id: 'next-' + i,
+        header: AHEAD_HEADER[i],
+        accessorFn: (r) => slotText(steps(r)?.steps[i]),
+        cell: ({ row }) => {
+          const at = steps(row.original);
+          return (
+            <span className={i === 0 ? 'ui-board-next-now' : undefined}>
+              <Slots slots={at?.steps[i]} labels={view.labels} />
+              {i === 0 && at?.now && <small> needed now</small>}
+            </span>
+          );
+        },
+      });
+    }
+  if (shown('app') && showApp) columns.push({ accessorKey: 'app', header: 'Tablet app' });
+  return columns;
+}
 
 /** One row per booth or tablet with its single next action (the List tab). */
 export function RunTable({
@@ -439,6 +902,9 @@ export function RunTable({
   onStart,
   onEnd,
   onServe,
+  onRename,
+  view = LIST_VIEW,
+  onViewChange,
 }: {
   rows: Row[];
   loading?: boolean;
@@ -448,16 +914,40 @@ export function RunTable({
   onStart: (t: BoardTablet) => void;
   onEnd?: (t: BoardTablet) => void;
   onServe?: (t: BoardTablet) => void;
+  /** Rename a booth for this viewer; without it the list offers no Rename. */
+  onRename?: (boothId: string, name: string) => void;
+  view?: ListView;
+  onViewChange?: (next: Partial<ListView>) => void;
 }) {
+  const [renaming, setRenaming] = useState('');
+  const latest = useRef(rows);
+  latest.current = rows;
+  // Shown only when some tablet reports its app version (not in a browser or a Docker install).
+  const showApp = rows.some((r) => r.app);
+  // Stable while a name is typed, so the board refreshing underneath keeps the field's focus.
+  const columns = useMemo(
+    () =>
+      listColumns(
+        view,
+        showApp,
+        { id: renaming, start: setRenaming, end: () => setRenaming('') },
+        onRename,
+        (boothId, name) => latest.current.some((r) => r.boothId !== boothId && r.booth === name),
+      ),
+    [view, showApp, renaming],
+  );
   return (
     <DataTable
       id="run-board"
       label="Tablets and booths"
       data={rows}
       columns={columns}
+      tools={onViewChange && <ListViewOptions view={view} onChange={onViewChange} />}
+      resizable="run-board"
       getRowId={(r) => r.id}
       selectable={false}
       virtualize={false}
+      wideActions
       emptyText={loading ? 'Loading…' : 'No tablets or booths yet. Set up a tablet first.'}
       rowActions={(r) => {
         const t = r.board;
@@ -510,6 +1000,7 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
   const [rooms, setRooms] = useState<BoardRoom[]>([]),
     [tablets, setTablets] = useState<BoardTablet[]>([]),
     [serverTime, setServerTime] = useState(''),
+    [offeredApp, setOfferedApp] = useState<string | null>(null),
     [roomId, setRoomId] = useState(''),
     [selectedId, setSelectedId] = useState(''),
     [label, setLabel] = useState(''),
@@ -523,19 +1014,35 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
   /** An earlier assessment still holding the booth a start was refused on, and the tablet to retry. */
   const [holder, setHolder] = useState<{ sessionId: string; booth: string; tablet: BoardTablet }>();
   const [staff, setStaff] = useStaffName();
+  const [floorView, setFloorView] = useFloorView();
+  const [listView, setListView] = useListView();
+  const [names, setName] = useBoothNames();
   const room = rooms.find((r) => roomKey(r) === roomId) ?? rooms[0];
   const selected = room?.booths.find((b) => b.id === selectedId && b.enabled);
   const occupant = (boothId: string) => tablets.find((t) => t.booth_id === boothId);
+  /** The room as shown here, under the booth names chosen on this computer. */
+  const shownRoom = room && withNames(room, names);
+  const shownLabel = (b: BoardBooth) => names[b.id] || b.label;
+  /** A name equal to the booth's own label clears the chosen one. */
+  const renameBooth = (id: string, name: string) => {
+    const own = rooms.flatMap((r) => r.booths).find((b) => b.id === id)?.label;
+    setName(id, name === own ? '' : name);
+  };
 
   const load = useCallback(async () => {
     try {
       const [r, b] = await Promise.all([
         client.request<BoardRoom[]>('/rooms'),
-        client.request<{ tablets: BoardTablet[]; server_time: string }>('/booth-board'),
+        client.request<{
+          tablets: BoardTablet[];
+          server_time: string;
+          offered_app_version?: string | null;
+        }>('/booth-board'),
       ]);
       setRooms(r);
       setTablets(b.tablets);
       setServerTime(b.server_time);
+      setOfferedApp(b.offered_app_version ?? null);
       setError((e) => (e.startsWith('Could not read') ? '' : e));
     } catch (e) {
       setError('Could not read the board: ' + (e instanceof Error ? e.message : 'read failed'));
@@ -552,7 +1059,8 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
     const timer = setInterval(() => void load(), 3000);
     return () => clearInterval(timer);
   }, [load]);
-  useEffect(() => setLabel(selected?.label ?? ''), [selected?.id, selected?.label]);
+  const selectedName = selected ? names[selected.id] || selected.label : '';
+  useEffect(() => setLabel(selectedName), [selected?.id, selectedName]);
   useEffect(() => {
     void loadStudies();
   }, [loadStudies]);
@@ -787,7 +1295,9 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
     { value: '', label: 'No tablet' },
     ...tablets.map((t) => ({ value: t.terminal_id, label: t.name })),
   ];
-  const labelTaken = !!room?.booths.some((b) => b.id !== selected?.id && b.label === label.trim());
+  const labelTaken = !!shownRoom?.booths.some(
+    (b) => b.id !== selected?.id && b.label === label.trim(),
+  );
 
   const count = (...stages: BoardTablet['stage'][]) =>
     tablets.filter((t) => stages.includes(t.stage)).length;
@@ -799,22 +1309,25 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
   const selectedStudy = released.find((r) => r.value === versionId);
 
   const booths = rooms.flatMap((r) => r.booths.filter((b) => b.enabled));
-  const boothLabel = (id: string | null) => booths.find((b) => b.id === id)?.label ?? '';
+  const boothOf = (id: string | null) => booths.find((b) => b.id === id);
   const rows: Row[] = [
     ...tablets.map((t) => ({
       id: t.terminal_id,
-      booth: boothLabel(t.booth_id) || 'No booth',
+      boothId: boothOf(t.booth_id)?.id,
+      booth: boothOf(t.booth_id) ? shownLabel(boothOf(t.booth_id)!) : 'No booth',
       tablet: t.name,
       study: studyOf(t.study_version_id),
       assessor: t.assessor_code ?? '—',
       now: t.detail,
+      app: appText(t, offeredApp),
       board: t,
     })),
     ...booths
       .filter((b) => !tablets.some((t) => t.booth_id === b.id))
       .map((b) => ({
         id: 'booth-' + b.id,
-        booth: b.label,
+        boothId: b.id,
+        booth: shownLabel(b),
         tablet: 'No tablet',
         study: '—',
         assessor: '—',
@@ -823,136 +1336,163 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
   ].sort((a, b) => a.booth.localeCompare(b.booth, undefined, { numeric: true }));
 
   const floor = (
-    <div className="ui-board">
-      <BoothCanvas
-        room={room}
-        tablets={tablets}
-        selectedId={selected?.id}
-        onSelect={setSelectedId}
-        onMove={(id, x, y) => void changeBooth(id, { x, y })}
-        onDropTablet={link}
-      />
-      {selected && room && (
-        <div className="ui-board-panel">
-          <SidePanel title={'Booth ' + selected.label} onClose={() => setSelectedId('')}>
-            <div className="ui-stack">
-              {(() => {
-                const tablet = occupant(selected.id);
-                return tablet?.serving ? (
-                  <ServingRequest
-                    tablet={tablet}
-                    serverTime={serverTime}
-                    busy={busy}
-                    needsName={!staff.trim()}
-                    onAct={(action) => serve(tablet, action)}
-                  />
-                ) : null;
-              })()}
-              {(() => {
-                const tablet = occupant(selected.id);
-                if (!tablet) return null;
-                const busyNow = BUSY.includes(tablet.stage);
-                return (
-                  <div className="ui-stack" role="group" aria-label="Assessment on this tablet">
-                    <strong>{tablet.name}</strong>
-                    <p>{tablet.detail}</p>
-                    {!tablet.serving && !!tablet.next_samples.length && (
-                      <p>
-                        Prepare next:{' '}
-                        {tablet.next_samples.map((s) => (
-                          <span key={s.sample_id + ':' + s.position}>
-                            <span className="ui-sample-code">{s.code}</span> {s.label}{' '}
-                          </span>
-                        ))}
-                      </p>
-                    )}
-                    <p className="ui-hint">Study: {studyOf(tablet.study_version_id)}</p>
-                    {busyNow ? (
-                      <>
-                        <ConfirmButton
-                          confirmLabel="End and assign next"
-                          disabled={busy || !versionId}
-                          onConfirm={() => start(tablet, true)}
-                        >
-                          Reset and assign next…
-                        </ConfirmButton>
-                        <ConfirmButton
-                          confirmLabel="End now"
-                          disabled={busy}
-                          onConfirm={() => end(tablet)}
-                        >
-                          End assessment
-                        </ConfirmButton>
+    <div className="ui-stack">
+      <FloorViewOptions view={floorView} onChange={setFloorView} />
+      <div className="ui-board">
+        <BoothCanvas
+          room={shownRoom}
+          tablets={tablets}
+          selectedId={selected?.id}
+          onSelect={setSelectedId}
+          onMove={(id, x, y) => void changeBooth(id, { x, y })}
+          onDropTablet={link}
+          onRename={renameBooth}
+          view={floorView}
+        />
+        {selected && room && (
+          <div className="ui-board-panel">
+            <SidePanel title={'Booth ' + selectedName} onClose={() => setSelectedId('')}>
+              <div className="ui-stack">
+                {(() => {
+                  const tablet = occupant(selected.id);
+                  return tablet?.serving ? (
+                    <ServingRequest
+                      tablet={tablet}
+                      serverTime={serverTime}
+                      busy={busy}
+                      needsName={!staff.trim()}
+                      onAct={(action) => serve(tablet, action)}
+                    />
+                  ) : null;
+                })()}
+                {(() => {
+                  const tablet = occupant(selected.id);
+                  if (!tablet) return null;
+                  const busyNow = BUSY.includes(tablet.stage);
+                  return (
+                    <div className="ui-stack" role="group" aria-label="Assessment on this tablet">
+                      <strong>{tablet.name}</strong>
+                      <p>{tablet.detail}</p>
+                      {tablet.app_version && (
                         <p className="ui-hint">
-                          This ends the running assessment. Answers the tablet already recorded
-                          still sync; nothing is deleted.
+                          Tablet app {tablet.app_version}
+                          {tablet.app_update_available &&
+                            offeredApp &&
+                            ' · ' +
+                              offeredApp +
+                              ' available: press and hold the top-left corner of the tablet, then' +
+                              ' Update tablet app'}
                         </p>
-                      </>
-                    ) : (
-                      <Button
-                        variant="primary"
-                        disabled={busy || !!blocked(tablet)}
-                        title={blocked(tablet)}
-                        onClick={() => start(tablet)}
-                      >
-                        {startLabel(tablet)}
-                      </Button>
-                    )}
-                    {!busyNow && !versionId && (
-                      <p className="ui-hint">Choose a study in the toolbar first.</p>
-                    )}
-                  </div>
-                );
-              })()}
-              <Field
-                label="Booth name"
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                error={labelTaken ? 'Another booth already has this name.' : undefined}
-                disabled={busy}
-              />
-              <Button
-                disabled={busy || !label.trim() || labelTaken || label.trim() === selected.label}
-                onClick={() => void changeBooth(selected.id, { label: label.trim() })}
-              >
-                Save name
-              </Button>
-              <Field
-                label="Tablet on this booth"
-                kind="select"
-                value={occupant(selected.id)?.terminal_id ?? ''}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  const current = occupant(selected.id);
-                  if (next) link(next, selected.id);
-                  else if (current) link(current.terminal_id, null);
-                }}
-                options={tabletOptions}
-                disabled={busy}
-                hint="Same as dragging a tablet onto the booth."
-              />
-              <p className="ui-hint">
-                Removing a booth only hides it from the board. Tablets, assessments and results stay
-                as they are.
-              </p>
-              <ConfirmButton
-                variant="danger"
-                confirmLabel="Remove booth"
-                disabled={busy || !!occupant(selected.id)}
-                onConfirm={() => {
-                  void changeBooth(selected.id, { enabled: false });
-                  setSelectedId('');
-                }}
-              >
-                Remove booth…
-              </ConfirmButton>
-              {occupant(selected.id) && (
-                <p className="ui-hint">Take the tablet off this booth before removing it.</p>
-              )}
-            </div>
-          </SidePanel>
-        </div>
-      )}
+                      )}
+                      {!tablet.serving && !!tablet.next_samples.length && (
+                        <p>
+                          Prepare next:{' '}
+                          {tablet.next_samples.map((s) => (
+                            <span key={s.sample_id + ':' + s.position}>
+                              <span className="ui-sample-code">{s.code}</span> {s.label}{' '}
+                            </span>
+                          ))}
+                        </p>
+                      )}
+                      <p className="ui-hint">Study: {studyOf(tablet.study_version_id)}</p>
+                      {busyNow ? (
+                        <>
+                          <ConfirmButton
+                            confirmLabel="End and assign next"
+                            disabled={busy || !versionId}
+                            onConfirm={() => start(tablet, true)}
+                          >
+                            Reset and assign next…
+                          </ConfirmButton>
+                          <ConfirmButton
+                            confirmLabel="End now"
+                            disabled={busy}
+                            onConfirm={() => end(tablet)}
+                          >
+                            End assessment
+                          </ConfirmButton>
+                          <p className="ui-hint">
+                            This ends the running assessment. Answers the tablet already recorded
+                            still sync; nothing is deleted.
+                          </p>
+                        </>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          disabled={busy || !!blocked(tablet)}
+                          title={blocked(tablet)}
+                          onClick={() => start(tablet)}
+                        >
+                          {startLabel(tablet)}
+                        </Button>
+                      )}
+                      {!busyNow && !versionId && (
+                        <p className="ui-hint">Choose a study in the toolbar first.</p>
+                      )}
+                    </div>
+                  );
+                })()}
+                <Field
+                  label="Booth name"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                  hint={
+                    'Shown on this computer only; the room layout and records keep booth ' +
+                    selected.label +
+                    '.'
+                  }
+                  error={labelTaken ? 'Another booth already has this name.' : undefined}
+                />
+                <span className="ui-inline">
+                  <Button
+                    disabled={!label.trim() || labelTaken || label.trim() === selectedName}
+                    onClick={() => renameBooth(selected.id, label.trim())}
+                  >
+                    Save name
+                  </Button>
+                  {names[selected.id] && (
+                    <Button onClick={() => renameBooth(selected.id, '')}>
+                      Use booth's own name
+                    </Button>
+                  )}
+                </span>
+                <Field
+                  label="Tablet on this booth"
+                  kind="select"
+                  value={occupant(selected.id)?.terminal_id ?? ''}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    const current = occupant(selected.id);
+                    if (next) link(next, selected.id);
+                    else if (current) link(current.terminal_id, null);
+                  }}
+                  options={tabletOptions}
+                  disabled={busy}
+                  hint="Same as dragging a tablet onto the booth."
+                />
+                <p className="ui-hint">
+                  Removing a booth only hides it from the board. Tablets, assessments and results
+                  stay as they are.
+                </p>
+                <ConfirmButton
+                  variant="danger"
+                  confirmLabel="Remove booth"
+                  disabled={busy || !!occupant(selected.id)}
+                  onConfirm={() => {
+                    void changeBooth(selected.id, { enabled: false });
+                    setSelectedId('');
+                  }}
+                >
+                  Remove booth…
+                </ConfirmButton>
+                {occupant(selected.id) && (
+                  <p className="ui-hint">Take the tablet off this booth before removing it.</p>
+                )}
+              </div>
+            </SidePanel>
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -1067,6 +1607,9 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
             content: (
               <RunTable
                 rows={rows}
+                onRename={renameBooth}
+                view={listView}
+                onViewChange={setListView}
                 loading={loading}
                 busy={busy}
                 blocked={blocked}
@@ -1081,7 +1624,8 @@ export function RunStudy({ client, view }: { client: Client; view?: string }) {
       />
       <p className="ui-hint">
         Drag a tablet onto a booth to place it. Drag a booth to arrange the floor like the room.
-        Select a booth to start, serve, rename or remove it.
+        Select a booth to start, serve, rename or remove it. Double-click a booth (or press F2) to
+        rename it in place.
       </p>
     </section>
   );

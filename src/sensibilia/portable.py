@@ -230,6 +230,7 @@ def child_environment(
         SENSIBILIA_RESEARCHER_TOKEN=settings.get("DEV_RESEARCHER_KEY", ""),
         SENSIBILIA_OPERATOR_TOKEN=settings.get("DEV_OPERATOR_KEY", ""),
         SENSIBILIA_LAN_ADDRESS=address,
+        SENSIBILIA_TABLET_APP_DIRECTORY=str(layout["data"] / "tablet-app"),
         # Optional analysis add-on; absent until 'Add analysis (R).bat' runs.
         SENSIBILIA_ANALYSIS_RUNTIME=str(layout["data"] / "analysis-runtime"),
     )

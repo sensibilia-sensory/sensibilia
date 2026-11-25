@@ -6,6 +6,7 @@ import { prepareGate, requestHelp, syncOperations, heartbeat } from './operation
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { StaffButton, StaffPanel } from './StaffCorner';
 import { AssessorShell, Button } from '../ui';
+import { TabletUpdate } from './TabletUpdate';
 import { currentNode, occurrenceId, type State, type Flow, type Answer } from '../shared/flow';
 import { displayText } from '../shared/flow/text';
 import { NodeAnswerRenderer } from '../shared/nodes/NodeAnswerRenderer';
@@ -450,6 +451,7 @@ export function Assessor({ id }: { id: string }) {
           <h1>Waiting for staff preparation</h1>
           <p>Ask laboratory staff to prepare the assigned assessment on this tablet.</p>
           {error && <p role="alert">{error}</p>}
+          <TabletUpdate />
         </AssessorShell>
       )}
     </>
@@ -479,10 +481,13 @@ export function HandoverReady({
   summary: handover,
   onConfirm,
   embedded = false,
+  offeredUpdate,
 }: {
   summary: Summary;
   onConfirm: () => void;
   embedded?: boolean;
+  /** Gallery only: show the update offer without the tablet app. */
+  offeredUpdate?: string;
 }) {
   return (
     <AssessorShell
@@ -512,6 +517,7 @@ export function HandoverReady({
         <dd>Complete · works offline</dd>
       </dl>
       <p>If anything is wrong, stop and ask the lab lead. Do not hand over the tablet.</p>
+      <TabletUpdate offered={offeredUpdate} />
     </AssessorShell>
   );
 }
@@ -625,6 +631,7 @@ export function AssignedTerminal({ requestedId }: { requestedId?: string }) {
       <p>Ask laboratory staff to prepare this tablet.</p>
       {paired && <p role="status">{claimNote || 'Checking for an assigned assessment…'}</p>}
       {error && <p role="alert">{error}</p>}
+      <TabletUpdate />
     </AssessorShell>
   );
 }

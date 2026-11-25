@@ -78,8 +78,28 @@ Install: `adb install -r app/build/outputs/apk/debug/app-debug.apk`
 - **Without device owner:** the app asks Android to pin the screen; staff confirm once and can
   unpin with the system gesture.
 
+## Updates from the server
+
+The app checks the server's `/tablet-app.json` when it starts, when it comes back to the front and
+every 10 minutes. When the server has a newer build (after the server is upgraded), staff see
+"Update tablet app" on the waiting and handover screens and in the corner menu (which also has
+"Check for app update"). One tap downloads `/tablet-app.apk` over HTTPS, checks its SHA-256 and
+installs it over the current app: the saved server, the pairing and stored answers stay. The app
+restarts by itself.
+
+- **Device owner:** installs without any prompt.
+- **Without device owner:** the app leaves kiosk mode and Android asks once; the first time it also
+  asks to allow Sensibilia to install apps.
+- If Android refuses because the app is signed differently (the server's `data\tablet-app` was lost,
+  or the app came from another server), the app says so: synchronise, uninstall and set up again.
+
+Only the Windows portable install bakes a tablet app; on the Docker install `/tablet-app.json`
+answers 404 and the app stays quiet. Run study shows each tablet's app version, with
+"0.1.2 → 0.1.3" when it is behind.
+
 ## Tests
 
-`ServersTest` covers address parsing (pairing URL, typed host:port, fingerprint normalisation).
-Camera scanning, the certificate flow and lock task mode need a device and are not covered by
-automated tests.
+`ServersTest` covers address parsing (pairing URL, typed host:port, fingerprint normalisation) and
+the certificate error causes; `UpdaterTest` covers reading `tablet-app.json` and install errors.
+Camera scanning, the certificate flow, lock task mode and installing an update need a device and
+are not covered by automated tests.
