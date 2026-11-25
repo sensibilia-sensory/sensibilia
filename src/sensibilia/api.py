@@ -423,7 +423,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Sensibilia API",
-        version="0.1.2",
+        version="0.1.3",
         lifespan=lifespan,
         description="Published sensory studies and idempotent response collection.",
         responses={

@@ -53,6 +53,10 @@ test('closing a study can end the open assessments, and archiving moves it to th
   await page.getByRole('button', { name: 'Studies', exact: true }).click();
   await expect(row(page, title)).toContainText('Closed');
   await row(page, title).getByRole('button', { name: 'Reopen', exact: true }).click();
+  // The Reopen button goes only once the server has reopened the study and the list reloaded.
+  await expect(row(page, title).getByRole('button', { name: 'Reopen', exact: true })).toHaveCount(
+    0,
+  );
   await expect(row(page, title)).toContainText('Open');
   expect((await startAssessment(request, versionId, 'A003')).status()).toBe(201);
 });
